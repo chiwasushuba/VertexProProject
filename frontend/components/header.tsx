@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'lucide-react';
 
-type HeaderVariant = 'default' | 'auth' | 'dashboard';
+type HeaderVariant = 'default' | 'auth' | 'dashboard' | 'watch';
 
 interface HeaderProps {
   variant?: HeaderVariant;
@@ -33,6 +33,12 @@ const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
       {variant === 'default' && (
         <div className="flex items-center justify-center border border-solid pl-10 pr-10 mr-10">
           Logout
+        </div>
+      )}
+
+      { variant === "watch" && (
+        <div className="flex items-center justify-center border border-solid pl-10 pr-10 mr-10">
+          Watch
         </div>
       )}
     </div>

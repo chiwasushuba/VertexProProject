@@ -1,8 +1,12 @@
+import Header from '@/components/header'
 import React from 'react'
 
 const SignupPage = () => {
   return (
-    <div>Signup</div>
+    <div>
+      <Header variant="dashboard"/>
+
+    </div>
   )
 }
 

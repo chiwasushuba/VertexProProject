@@ -1,14 +1,16 @@
-'use client'
+'use client';
 
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@radix-ui/react-label';
 import { CircleArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 
 const WatchPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [lastTime, setLastTime] = useState(0);
+  const [videoDone, setVideoDone] = useState(false); // ✅ fix destructuring
 
   useEffect(() => {
     const video = videoRef.current;
@@ -24,37 +26,43 @@ const WatchPage = () => {
       }
     };
 
+    const handleEnded = () => {
+      setVideoDone(true); // ✅ show the "Next" button
+    };
+
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('seeking', handleSeeking);
+    video.addEventListener('ended', handleEnded); // ✅ listen to video end
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('seeking', handleSeeking);
+      video.removeEventListener('ended', handleEnded);
     };
   }, [lastTime]);
 
   return (
     <div>
-      <Header variant='auth'/>
-      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
-        
+      <Header variant="auth" />
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 relative">
         <video ref={videoRef} width="640" height="360" controls>
-          <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+          <source
+            src="https://www.w3schools.com/html/mov_bbb.mp4"
+            type="video/mp4"
+          />
           Your browser does not support the video tag.
         </video>
 
-        <button
-          className=
-          "absolute flex items-center gap-2 px-5 py-2 bg-gray-600 text-white rounded-full hover:bg-gray-400 transition-all bottom-10 right-20"
-        >
-          <CircleArrowRight size={30}/>
-        </button>
-
-
-
-
-        
-
+        {videoDone && (
+          <Link href="/">
+            <button
+              className="absolute flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-full hover:bg-gray-400 transition-all bottom-10 right-20"
+            >
+              <CircleArrowRight size={40} />
+              <span className="text-lg">Next</span>
+            </button>
+          </Link>
+        )}
       </div>
     </div>
   );
