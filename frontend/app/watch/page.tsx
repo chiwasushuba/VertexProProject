@@ -35,7 +35,7 @@ const WatchPage = () => {
 
   return (
     <div>
-      <Header/>
+      <Header variant='auth'/>
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
         
         <video ref={videoRef} width="640" height="360" controls>
