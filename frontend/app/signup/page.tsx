@@ -4,7 +4,7 @@ import React from 'react'
 const SignupPage = () => {
   return (
     <div>
-      <Header variant="dashboard"/>
+      <Header variant="default" location='Signup'/>
 
     </div>
   )
