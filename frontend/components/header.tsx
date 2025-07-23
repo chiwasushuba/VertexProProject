@@ -1,49 +1,47 @@
-import React from 'react';
+import type React from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { MountainIcon } from "lucide-react"
 
-type HeaderVariant = 'default' | 'signedUser' | 'noSignedUser' | "menu";
+type HeaderVariant = "default" | "signedUser" | "noSignedUser" | "menu"
 
 interface HeaderProps {
-  variant?: HeaderVariant;
-  location?: string;
+  variant?: HeaderVariant
+  location?: string
 }
 
-const Header: React.FC<HeaderProps> = ({ variant = 'default', location }) => {
-  let actionSection;
+const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
+  let actionSection
 
-
-  // Put the if else logic here instead of doing it in return
-  if (variant === 'signedUser') {
+  if (variant === "signedUser") {
     actionSection = (
-      <div className="flex items-center justify-center border border-solid pl-10 pr-10 mr-10">
+      <Button variant="link" className="mr-4 text-primary-foreground">
         Logout
-      </div>
-    );
-  } else if (variant === 'noSignedUser') {
-    actionSection = (
-      <div className="flex items-center justify-center border border-solid pl-10 pr-10 mr-10">
-        Login
-      </div>
-    );
+      </Button>
+    )
+  } else if (variant === "noSignedUser") {
+    actionSection = <Button className="mr-4 bg-secondary text-primary-foreground hover:bg-secondary/90">Login</Button>
   } else {
-    actionSection = (
-      <>
-      </>
-    );
+    actionSection = <></>
   }
 
   return (
-    <div className="relative top-0 flex justify-between items-center w-screen h-13 bg-gray-600">
-      <div className="flex items-center justify-center border border-solid pl-10 pr-10 ml-10 gap-4">
-        <span>Logo</span>
+    <header className="sticky top-0 z-40 w-full border-b bg-gray-800">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-primary-foreground">
+          <MountainIcon className="h-6 w-6 text-primary-foreground" />
+          <span className="sr-only">Acme Inc</span>
+          <span>VERTEXPRO</span>
+        </Link>
+        {location && (
+          <div className="flex items-center justify-center text-sm font-medium text-primary-foreground">
+            <span>{location}</span>
+          </div>
+        )}
+        {actionSection}
       </div>
+    </header>
+  )
+}
 
-      { location && (<div className="flex items-center justify-center border border-solid pl-10 pr-10 ml-10 gap-4">
-        <span>{location}</span>
-      </div>)}
-
-      {actionSection}
-    </div>
-  );
-};
-
-export default Header;
+export default Header
