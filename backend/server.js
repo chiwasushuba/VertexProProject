@@ -1,9 +1,19 @@
+require("dotenv").config();
+const mongoose = require("mongoose")
 const express = require("express")
+const cors = require("cors");
+
 const app = express();
 
-const cors = require("cors")
+
 
 const port = 4000;
-app.listen(port, () => {
-    console.log("Connected to localhost ", port)
-});
+
+mongoose.connect(process.env.MONGO_URI).then(() => {
+    app.listen(port, () => {
+        console.log("Connected to localhost ", port)
+        console.log("Connected to database")
+    });
+}).catch((e) => {
+    console.log("message: ", e);
+})

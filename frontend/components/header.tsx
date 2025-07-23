@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'default', location }) => {
   }
 
   return (
-    <div className="absolute top-0 flex justify-between items-center w-screen h-13 bg-gray-600">
+    <div className="relative top-0 flex justify-between items-center w-screen h-13 bg-gray-600">
       <div className="flex items-center justify-center border border-solid pl-10 pr-10 ml-10 gap-4">
         <span>Logo</span>
       </div>
