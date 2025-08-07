@@ -2,7 +2,7 @@
 const User = require('../model/userModel');
 
 // Register a new user
-exports.registerUser = async (req, res) => {
+const registerUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
         const user = new User({ username, email, password });
@@ -14,7 +14,7 @@ exports.registerUser = async (req, res) => {
 };
 
 // Login user
-exports.loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
@@ -28,7 +28,7 @@ exports.loginUser = async (req, res) => {
 };
 
 // Get all users
-exports.getUsers = async (req, res) => {
+const getUsers = async (req, res) => {
     try {
         const users = await User.find();
         res.status(200).json(users);
@@ -36,3 +36,10 @@ exports.getUsers = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+exports.module = {
+    registerUser,
+    loginUser,
+    getUsers
+}
