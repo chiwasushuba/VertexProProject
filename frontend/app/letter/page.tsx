@@ -10,6 +10,7 @@ import { CalendarIcon } from "lucide-react"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
+import Header from "@/components/header"
 
 const LetterPage: React.FC = () => {
   const [templateFile, setTemplateFile] = useState<File | null>(null)
@@ -135,71 +136,74 @@ const LetterPage: React.FC = () => {
   )
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Store Intro Letter</h2>
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <div className="flex flex-col items-start">
-          <h3 className="font-medium mb-1">Upload Template (.docx)</h3>
-          <input
-            type="file"
-            accept=".docx"
-            onChange={handleFileChange}
-            className="w-full border p-2 rounded"
-          />
-        </div>
+    <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
+      <Header variant='signedUser' />
+      <div className="p-4 max-w-[80vh]">
+        <h2 className="text-2xl font-bold mb-6">Store Intro Letter</h2>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <div className="flex flex-col items-start">
+            <h3 className="font-medium mb-1">Upload Template (.docx)</h3>
+            <input
+              type="file"
+              accept=".docx"
+              onChange={handleFileChange}
+              className="w-full border p-2 rounded"
+            />
+          </div>
 
-        {renderDatePicker("Start Date", dateStart, setDateStart, "dateStart")}
-        {renderDatePicker("End Date", dateEnd, setDateEnd, "dateEnd")}
+          {renderDatePicker("Start Date", dateStart, setDateStart, "dateStart")}
+          {renderDatePicker("End Date", dateEnd, setDateEnd, "dateEnd")}
 
-        <div className="flex flex-col items-start">
-          <h3 className="font-medium mb-1">Name</h3>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleInputChange}
-            placeholder="Enter your name"
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div className="flex flex-col items-start">
-          <h3 className="font-medium mb-1">Address</h3>
-          <input
-            name="address"
-            value={form.address}
-            onChange={handleInputChange}
-            placeholder="Enter your address"
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div className="flex flex-col items-start">
-          <h3 className="font-medium mb-1">Email</h3>
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleInputChange}
-            placeholder="Enter your email"
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div className="flex flex-col items-start">
-          <h3 className="font-medium mb-1">Client Name</h3>
-          <input
-            name="clientName"
-            value={form.clientName}
-            onChange={handleInputChange}
-            placeholder="Enter client name"
-            className="w-full border p-2 rounded"
-          />
-        </div>
-        <div className="flex flex-col items-start">
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
-          >
-            Generate
-          </button>
-        </div>
-      </form>
+          <div className="flex flex-col items-start">
+            <h3 className="font-medium mb-1">Name</h3>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleInputChange}
+              placeholder="Enter your name"
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div className="flex flex-col items-start">
+            <h3 className="font-medium mb-1">Address</h3>
+            <input
+              name="address"
+              value={form.address}
+              onChange={handleInputChange}
+              placeholder="Enter your address"
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div className="flex flex-col items-start">
+            <h3 className="font-medium mb-1">Email</h3>
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleInputChange}
+              placeholder="Enter your email"
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div className="flex flex-col items-start">
+            <h3 className="font-medium mb-1">Client Name</h3>
+            <input
+              name="clientName"
+              value={form.clientName}
+              onChange={handleInputChange}
+              placeholder="Enter client name"
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div className="flex flex-col items-start">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+            >
+              Generate
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
