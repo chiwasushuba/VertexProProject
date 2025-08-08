@@ -127,4 +127,6 @@ module.exports = {
     loginUser,
     getUsers,
     getUser,
+    getAllUserRole,
+    getAllAdminRole
 }
