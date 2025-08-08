@@ -29,14 +29,55 @@ const getUser = async (req, res) => {
 // Register a new user
 const createUser = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        const user = new User({ username, email, password });
+        const {
+            email,
+            password,
+            role,
+            firstName,
+            lastName,
+            middleName,
+            gender,
+            position,
+            completeAddress,
+            nbiExpirationDate,
+            fitToWorkExpirationDate,
+            gcashNumber,
+            gcashName,
+            profileImage
+        } = req.body;
+
+        // Basic required field check
+        if (!email || !password || !firstName || !lastName || !gender || !position || !completeAddress || !nbiExpirationDate || !fitToWorkExpirationDate || !gcashNumber || !gcashName) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Create new user
+        const user = new User({
+            email,
+            password, // In production, hash this before saving
+            role,
+            firstName,
+            lastName,
+            middleName,
+            gender,
+            position,
+            completeAddress,
+            nbiExpirationDate,
+            fitToWorkExpirationDate,
+            gcashNumber,
+            gcashName,
+            profileImage
+        });
+
         await user.save();
-        res.status(201).json({ message: 'User registered successfully', user });
+
+        res.status(201).json({ message: "User registered successfully", user });
+
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
+
 
 // Login user
 const loginUser = async (req, res) => {
