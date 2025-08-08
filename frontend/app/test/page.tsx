@@ -1,5 +1,6 @@
 'use client';
 
+import { set } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 
 export default function CapturePage() {
@@ -11,17 +12,22 @@ export default function CapturePage() {
   const [city, setCity] = useState<string | null>(null);
   const [suburb, setSuburb] = useState<string | null>(null);
   const [fullAddress, setFullAddress] = useState<string | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [isLocationReady, setIsLocationReady] = useState(false);
+  // Check if camera is availabl
 
   // Start camera
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
+        setIsCameraReady(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
       })
       .catch(err => {
         console.error('Camera error:', err);
+        setIsCameraReady(false);
         setError('Camera access denied. Please allow camera access.');
       });
   }, []);
@@ -30,12 +36,14 @@ export default function CapturePage() {
   useEffect(() => {
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        setIsLocationReady(true);
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         setLocation({ lat, lng });
       },
       (err) => {
         console.error('Location error:', err);
+        setIsLocationReady(false);
         setError('Location access denied. Please allow location access.');
       },
       { enableHighAccuracy: true }
@@ -102,33 +110,45 @@ export default function CapturePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <h1 className="text-2xl font-semibold mb-4">Take a Picture</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 p-4">
+      <div className='flex flex-col items-center'>
+        <h1 className="text-2xl font-semibold mb-4">Take a Picture</h1>
 
-      {error && <p className="text-red-600">{error}</p>}
+        {error && <p className="text-red-600">{error}</p>}
 
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        className="w-full max-w-md rounded-xl shadow"
-      />
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="w-full max-w-md rounded-xl shadow"
+        />
 
-      <button
-        onClick={capturePhoto}
-        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        Capture
-      </button>
+        <button
+          onClick={capturePhoto}
+          disabled={!isCameraReady || !isLocationReady}
+          className={`mt-4 px-6 py-2 rounded-lg text-white 
+            ${(!isCameraReady || !isLocationReady) ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}
+          `}
+        >
+          Capture
+        </button>
+      </div>
 
       {capturedImage && (
-        <div className="mt-6 text-center">
+        <div className="flex flex-col justify-center mt-6 text-justify w-auto">
           <img src={capturedImage} alt="Captured" className="rounded-lg shadow mb-4 max-w-xs" />
-          <p><strong>Time:</strong> {timestamp}</p>
-          <p><strong>Coordinates:</strong> {location?.lat}, {location?.lng}</p>
-          <p><strong>Suburb:</strong> {suburb || 'N/A'}</p>
-          <p><strong>City:</strong> {city}</p>
-          <p><strong>Full Address:</strong><br /> {fullAddress || 'Unknown'}</p>
+          <span className='flex'>
+            <strong>Time:&nbsp; </strong> {timestamp}
+          </span>
+          <span>
+            <strong>Suburb:&nbsp; </strong> {suburb || 'N/A'}
+          </span>
+          <span>
+            <strong>City: &nbsp;</strong> {city}
+          </span>
+          <span className='flex'>
+            <strong>Full Address:&nbsp; </strong>{fullAddress}
+          </span>
         </div>
       )}
     </div>
