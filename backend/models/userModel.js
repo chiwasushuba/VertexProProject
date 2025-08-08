@@ -21,4 +21,55 @@ const userSchema = new mongoose.Schema({
     verified: { type: Boolean, default: false },
 });
 
+userSchema.statics.signup = async function(userData) {
+    const requiredFields = [
+        "email", "password", "firstName", "lastName",
+        "gender", "position", "completeAddress",
+        "nbiExpirationDate", "fitToWorkExpirationDate",
+        "gcashNumber", "gcashName"
+    ];
+
+    for (const field of requiredFields) {
+        if (!userData[field]) {
+            throw new Error(`${field} is required`);
+        }
+    }
+
+    const exists = await this.findOne({ email: userData.email });
+    if (exists) {
+        throw new Error("Email already in use");
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(userData.password, salt);
+
+    // Create user
+    const user = await this.create({
+        ...userData,
+        password: hash
+    });
+
+    return user;
+};
+
+
+userSchema.statics.login = async function(email, password) {
+    if (!email || !password) {
+        throw new Error("Email and password are required");
+    }
+
+    const user = await this.findOne({ email });
+    if (!user) {
+        throw new Error("Invalid email or password");
+    }   
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        throw new Error("Invalid email or password");
+    }
+
+    return user;
+}
+
 module.exports = mongoose.model('User', userSchema);

@@ -2,18 +2,19 @@
 const express = require('express');
 const router = express.Router();
 const {
-    createUser,
-    loginUser,
+    signup,
+    login,
     getUsers,
     getUser,
     getAllUserRole,
     getAllAdminRole,
+    signup,
 } = require('../controllers/userController');
 
 router.get('/', getUsers);
 router.get('/:id', getUser);
-router.post('/', createUser);
-router.post('/login', loginUser);
+router.post('/signup', signup);
+router.post('/login', login);
 router.get('/role/user', getAllUserRole);
 router.get('/role/admin', getAllAdminRole);
 
