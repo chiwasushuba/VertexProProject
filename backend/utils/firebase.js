@@ -7,7 +7,7 @@ admin.initializeApp({
         private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         client_email: process.env.FIREBASE_CLIENT_EMAIL,
     }),
-    storageBucket: "gs://mernforum-eff8b.firebasestorage.app",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
 });
 
 const bucket = admin.storage().bucket();
