@@ -18,7 +18,7 @@ export default function CapturePage() {
 
   // Start camera
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ video: {facingMode: "user"},  })
       .then(stream => {
         setIsCameraReady(true);
         if (videoRef.current) {
@@ -56,11 +56,9 @@ export default function CapturePage() {
   useEffect(() => {
     async function getLocationDetails(lat: number, lng: number) {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
-          headers: {
-            'User-Agent': 'YourAppName/1.0 (your@email.com)'
-          }
-        });
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+        );
         const data = await res.json();
         const address = data.address;
 
@@ -146,8 +144,8 @@ export default function CapturePage() {
           <span>
             <strong>City: &nbsp;</strong> {city}
           </span>
-          <span className='flex'>
-            <strong>Full Address:&nbsp; </strong>{fullAddress}
+          <span>
+            <strong>Full Address:</strong><br /> {fullAddress}
           </span>
         </div>
       )}
