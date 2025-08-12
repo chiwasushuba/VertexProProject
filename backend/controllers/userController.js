@@ -26,7 +26,45 @@ const getUser = async (req, res) => {
     }
 }
 
-// Register a new user
+
+// Update a user by ID
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete a user by ID
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+
+
+
+/**
+ * 
+ * ADMIN DASHBOARD FUNCTIONS
+ * 
+ */
+
+
 const signup = async (req, res) => {
     try{
         const user = new User.signup(req.body);
@@ -38,7 +76,6 @@ const signup = async (req, res) => {
 };
 
 
-// Login user
 const login = async (req, res) => {
     try {
         const user = new User.login(req.body.email, req.body.password);
@@ -76,6 +113,33 @@ const getAllAdminRole = async (req, res) => {
     }
 }
 
+const verifyUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndUpdate(id, { verified: true }, { new: true });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        } 
+
+        res.status(200).json({ message: 'User verified successfully', user });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+const unverifyUser = async (req, res) => {
+    try {
+        const { id } = req.params;  
+        const user = await User.findByIdAndUpdate(id, { verified: false }, { new: true });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json({ message: 'User unverified successfully', user });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+
+};
 
 module.exports = {
     signup,
