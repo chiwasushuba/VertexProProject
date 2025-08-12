@@ -138,9 +138,9 @@ const LetterPage: React.FC = () => {
   return (
     <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       <Header variant='signedUser' />
-      <div className="p-4 max-w-[80vh]">
-        <h2 className="text-2xl font-bold mb-6">Store Intro Letter</h2>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <div className="flex flex-col items-center p-4 w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] xl:w-[50vw] mx-auto">
+        <h2 className="text-2xl font-bold mb-6 mt-6">Store Intro Letter</h2>
+        <form className="flex flex-col gap-4 bg-gray-100 p-8 w-full rounded-2xl" onSubmit={handleSubmit}>
           <div className="flex flex-col items-start">
             <h3 className="font-medium mb-1">Upload Template (.docx)</h3>
             <input
