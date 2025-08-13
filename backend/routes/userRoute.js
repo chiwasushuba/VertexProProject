@@ -8,7 +8,6 @@ const {
     getUser,
     getAllUserRole,
     getAllAdminRole,
-    signup,
     updateUser,
     deleteUser,
     verifyUser,
@@ -21,11 +20,12 @@ router.get('/', getUsers);
 router.get('/:id', getUser);
 router.post('/signup', signup);
 router.post('/login', login);
+router.delete('/delete/:id', deleteUser);
 
-router.use(requireAuth); // below are the endpoints that require authentication
+// router.use(requireAuth); // below are the endpoints that require authentication
 
 router.patch('/update/:id', updateUser);
-router.delete('/delete/:id', deleteUser);
+
 router.get('/role/user', getAllUserRole);
 router.get('/role/admin', getAllAdminRole);
 router.patch('/verify/:id', verifyUser);

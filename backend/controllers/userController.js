@@ -31,7 +31,7 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+        const user = await User.findByIdAndUpdate(id, req.body);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -67,8 +67,8 @@ const deleteUser = async (req, res) => {
 
 const signup = async (req, res) => {
     try{
-        const user = new User.signup(req.body);
-        res.status(200).json({ message: "User created successfully", user });  
+        const user = await User.signup(req.body);
+        res.status(200).json({ message: "User created successfully", user, token: user.token });  
         
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -78,8 +78,8 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const user = new User.login(req.body.email, req.body.password);
-        res.status(200).json({ message: "Login successful", user });
+        const user = await User.login(req.body.email, req.body.password);
+        res.status(200).json({ message: "Login successful", user, token: user.token });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
