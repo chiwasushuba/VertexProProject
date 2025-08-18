@@ -10,6 +10,10 @@ const WatchPage = () => {
   const [lastTime, setLastTime] = useState(0);
   const [videoDone, setVideoDone] = useState(false);
 
+  const tempUser = {
+    name: 'John Doe'
+  }
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -52,7 +56,7 @@ const WatchPage = () => {
         </video>
 
         {videoDone && (
-          <TermsDialog/>
+          <TermsDialog name={tempUser.name}/>
         )}
       </div>
     </div>

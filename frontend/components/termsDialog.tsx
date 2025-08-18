@@ -12,7 +12,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter } from "next/navigation"
 import { Label } from "@radix-ui/react-label"
 
-export function TermsDialog() {
+interface TermsDialogProps {
+  name: string;
+}
+
+
+export function TermsDialog(termsDialogProps: TermsDialogProps) {
   const [open, setOpen] = useState(true)
   const [agreed, setAgreed] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -34,7 +39,7 @@ export function TermsDialog() {
           <DialogTitle>Terms and Conditions</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="flex flex-col space-y-4 justify-center">
           {/* Terms Agreement Checkbox - Initially hidden, shown after video */}
           <div className="flex items-center space-x-2 pt-4">
             <Checkbox 
@@ -46,7 +51,14 @@ export function TermsDialog() {
               I UNDERSTAND THE VIDEO PRESENTED AND WILL FOLLOW THE RULES
             </Label>
           </div>
-
+          <div className="flex justify-between">
+            <Label>
+              Name: {termsDialogProps.name}
+            </Label>
+            <Label>
+              Date/Time: {new Date().toLocaleString()}
+            </Label>
+          </div>
           {/* Continue Button - Disabled until checkbox is checked */}
           <Button 
             className="w-full mt-4" 
