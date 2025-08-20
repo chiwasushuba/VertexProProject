@@ -1,5 +1,6 @@
 // User Controller
 const User = require('../models/userModel');
+const { bucket } = require('../utils/firebase'); // firebase bucket
 
 // Get all users
 const getUsers = async (req, res) => {
@@ -28,13 +29,52 @@ const getUser = async (req, res) => {
 
 // Register a new user
 const signup = async (req, res) => {
-    try{
-        const user = new User.signup(req.body);
-        res.status(200).json({ message: "User created successfully", user });  
-        
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+  try {
+    if (req.fileValidationError) {
+      return res.status(400).json({ error: req.fileValidationError });
     }
+
+    let profileImage = '';
+
+    if (req.file) {
+      const fileName = `users/${Date.now()}-${req.file.originalname}`;
+      const blob = bucket.file(fileName);
+
+      const blobStream = blob.createWriteStream({
+        metadata: { contentType: req.file.mimetype },
+      });
+
+      await new Promise((resolve, reject) => {
+        blobStream.on('error', reject);
+        blobStream.on('finish', async () => {
+          try {
+            await blob.makePublic();
+            profileImage = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        });
+        blobStream.end(req.file.buffer);
+      });
+    }
+
+    const { name, email, password, role } = req.body;
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: role || 'user',
+      profileImage,
+    });
+
+    // Exclude password before sending back
+    const { password: _, ...safeUser } = user.toObject();
+
+    res.status(201).json({ message: "User created successfully", user: safeUser });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 };
 
 
