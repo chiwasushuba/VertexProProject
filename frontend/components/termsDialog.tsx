@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -8,60 +7,80 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useRouter } from "next/navigation"
 import { Label } from "@radix-ui/react-label"
+import { useRouter } from "next/navigation"
 
 interface TermsDialogProps {
-  name: string;
+  name: string
+  agreed: boolean
+  open: boolean
+  setOpen: (open: boolean) => void
 }
 
-
-export function TermsDialog(termsDialogProps: TermsDialogProps) {
-  const [open, setOpen] = useState(true)
-  const [agreed, setAgreed] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
   const router = useRouter()
 
-  const handleVideoEnd = () => {
-    // Show the checkbox and button after video ends
-  }
+  const handleContinue = async () => {
+    try {
+      // Ask user to select a screen/tab/window
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      })
 
-  const handleContinue = () => {
+      // Create a video element to draw a frame
+      const video = document.createElement("video")
+      video.srcObject = stream
+
+      await new Promise((resolve) => {
+        video.onloadedmetadata = () => {
+          video.play()
+          resolve(true)
+        }
+      })
+
+      // Draw video frame into a canvas
+      const canvas = document.createElement("canvas")
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext("2d")
+      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+      // Stop the screen share stream
+      stream.getTracks().forEach((track) => track.stop())
+
+      // Convert canvas to PNG
+      const screenshot = canvas.toDataURL("image/png")
+
+      // Trigger download
+      const link = document.createElement("a")
+      link.href = screenshot
+      link.download = "screenshot.png"
+      link.click()
+    } catch (err) {
+      console.error("Screen capture failed:", err)
+    }
+
+    // close dialog & navigate
     setOpen(false)
-    router.push("/") // Replace with your actual next page route
+    router.push("/")
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>Terms and Conditions</DialogTitle>
+          <DialogTitle>
+            I accepted and agree to follow the rules in the video
+          </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex flex-col space-y-4 justify-center">
-          {/* Terms Agreement Checkbox - Initially hidden, shown after video */}
-          <div className="flex items-center space-x-2 pt-4">
-            <Checkbox 
-              id="terms" 
-              checked={agreed}
-              onCheckedChange={(checked) => setAgreed(!!checked)}
-            />
-            <Label htmlFor="terms">
-              I UNDERSTAND THE VIDEO PRESENTED AND WILL FOLLOW THE RULES
-            </Label>
-          </div>
           <div className="flex justify-between">
-            <Label>
-              Name: {termsDialogProps.name}
-            </Label>
-            <Label>
-              Date/Time: {new Date().toLocaleString()}
-            </Label>
+            <Label>Name: {name}</Label>
+            <Label>Date/Time: {new Date().toLocaleString()}</Label>
           </div>
-          {/* Continue Button - Disabled until checkbox is checked */}
-          <Button 
-            className="w-full mt-4" 
+          <Button
+            className="w-full mt-4"
             disabled={!agreed}
             onClick={handleContinue}
           >
