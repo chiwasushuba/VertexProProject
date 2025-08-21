@@ -4,7 +4,7 @@ import { Card, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
 
-const UserCard = ({ name, email, pfp,verified }: UserType) => {
+const UserCard = ({id, name, email, pfp,verified }: UserType) => {
   return (
     <Card className="w-full bg-white shadow-lg rounded-lg p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       {/* User Info */}
@@ -23,7 +23,7 @@ const UserCard = ({ name, email, pfp,verified }: UserType) => {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
-        <Button>Edit</Button>
+        {/* <Button>Edit</Button> */}
         <Button className="text-[0.800rem]">
           Send Intro Letter
         </Button>

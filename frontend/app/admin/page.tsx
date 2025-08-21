@@ -12,34 +12,35 @@ const page = () => {
 
   const signedUser = true // This should be replaced with actual user authentication logic
   const sampleUsers: UserType[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@gmail.com',
-    pfp: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s',
-    verified: false
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@gmail.com',
-    pfp: 'https://media.tenor.com/d532ir4rUe0AAAAe/charmander.png',
-    verified: true
-  },
-  {
-    id: '3',
-    name: 'Alice Johnson',
-    email: 'alice.johnson@gmail.com',
-    pfp: 'https://thestartbutton89.wordpress.com/wp-content/uploads/2013/09/tumblr_msmyklesso1svlwhbo1_1280.png',
-    verified: false
-  }
-]
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john.doe@gmail.com',
+      pfp: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s',
+      verified: false
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane.smith@gmail.com',
+      pfp: 'https://media.tenor.com/d532ir4rUe0AAAAe/charmander.png',
+      verified: true
+    },
+    {
+      id: '3',
+      name: 'Alice Johnson',
+      email: 'alice.johnson@gmail.com',
+      pfp: 'https://thestartbutton89.wordpress.com/wp-content/uploads/2013/09/tumblr_msmyklesso1svlwhbo1_1280.png',
+      verified: false
+    }
+  ]
 
   const [users, setUsers] = useState<UserType[]>([])
 
   useEffect(() => {
     setUsers(sampleUsers)
   }, [])
+
 
   return (
     <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
