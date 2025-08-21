@@ -29,9 +29,15 @@ router.get('/:id', getUser);
 // Get by role
 router.get('/role/user', getAllUserRole);
 router.get('/role/admin', getAllAdminRole);
+
+
+// Update user
+router.put('/:id', updateUser);
 router.patch('/verify/:id', verifyUser);
 router.patch('/unverify/:id', unverifyUser);
 router.patch('/changerole/:id', unverifyUser);
+router.patch("/changerole/:id", changeUserRole);
 
+router.delete('/:id', deleteUser);
 module.exports = router;
 
