@@ -10,6 +10,11 @@ const {
     getUser,
     getAllUserRole,
     getAllAdminRole,
+    updateUser,
+    deleteUser,
+    verifyUser,
+    unverifyUser,
+    changeUserRole
 } = require('../controllers/userController');
 
 // Signup with profile image upload
@@ -25,5 +30,14 @@ router.get('/:id', getUser);
 router.get('/role/user', getAllUserRole);
 router.get('/role/admin', getAllAdminRole);
 
+
+// Update user
+router.put('/:id', updateUser);
+router.patch('/verify/:id', verifyUser);
+router.patch('/unverify/:id', unverifyUser);
+router.patch('/changerole/:id', unverifyUser);
+router.patch("/changerole/:id", changeUserRole);
+
+router.delete('/:id', deleteUser);
 module.exports = router;
 
