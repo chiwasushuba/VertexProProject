@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
     position: {type: String, enum: ["Coordinator", "Sampler", "Helper"], required: true },
     completeAddress: { type: String, required: true },
+    nbiRegistrationDate: { type: Date, required: true },
     nbiExpirationDate: { type: Date, required: true },
     fitToWorkExpirationDate: { type: Date, required: true },
     gcashNumber: { type: Number, required: true },
@@ -26,7 +27,7 @@ const userSchema = new mongoose.Schema({
 userSchema.statics.signup = async function(userData) {
     const requiredFields = [
         "email", "password", "firstName", "lastName",
-        "gender", "position", "completeAddress",
+        "gender", "position", "completeAddress", "nbiExpirationDate",
         "nbiExpirationDate", "fitToWorkExpirationDate",
         "gcashNumber", "gcashName"
     ];

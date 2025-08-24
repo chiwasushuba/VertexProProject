@@ -34,11 +34,12 @@ POST /user/
   "gender": "Male",
   "position": "Coordinator",
   "completeAddress": "123 Street, City",
+  "nbiRegistrationDate": "2023-10-01",
   "nbiExpirationDate": "2025-09-01",
   "fitToWorkExpirationDate": "2025-10-01",
   "gcashNumber": 9123456789,
   "gcashName": "Test user",
-  "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s"
+  "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s" //FILE
 }
 
 

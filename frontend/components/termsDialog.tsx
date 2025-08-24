@@ -21,45 +21,6 @@ export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
   const router = useRouter()
 
   const handleContinue = async () => {
-    try {
-      // Ask user to select a screen/tab/window
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-      })
-
-      // Create a video element to draw a frame
-      const video = document.createElement("video")
-      video.srcObject = stream
-
-      await new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-          video.play()
-          resolve(true)
-        }
-      })
-
-      // Draw video frame into a canvas
-      const canvas = document.createElement("canvas")
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      const ctx = canvas.getContext("2d")
-      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-      // Stop the screen share stream
-      stream.getTracks().forEach((track) => track.stop())
-
-      // Convert canvas to PNG
-      const screenshot = canvas.toDataURL("image/png")
-
-      // Trigger download
-      const link = document.createElement("a")
-      link.href = screenshot
-      link.download = "screenshot.png"
-      link.click()
-    } catch (err) {
-      console.error("Screen capture failed:", err)
-    }
-
     // close dialog & navigate
     setOpen(false)
     router.push("/")
@@ -75,6 +36,7 @@ export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
         </DialogHeader>
 
         <div className="flex flex-col space-y-4 justify-center">
+          <div><Label className="text-gray-600 text-center text-sm">Note: You need to send a screenshot of this to your supervisor in order to prove that you watched the video</Label></div>
           <div className="flex justify-between">
             <Label>Name: {name}</Label>
             <Label>Date/Time: {new Date().toLocaleString()}</Label>
