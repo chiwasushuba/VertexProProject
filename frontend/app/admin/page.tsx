@@ -81,18 +81,20 @@ const Page = () => {
           {!loading && !error && users.length === 0 && (
             <p className="text-black">No admins found</p>
           )}
-          {users.map(user => (
-            <UserCard
-              key={user.id}
-              id={user.id}
-              name={user.name}
-              email={user.email}
-              verified={user.verified}
-              pfp={user.pfp}
-              onVerify={handleVerify}
-              onUnverify={handleUnverify}
-            />
-          ))}
+          <div className='flex flex-col gap-2'>
+            {users.map(user => (
+              <UserCard
+                key={user.id}
+                id={user.id}
+                name={user.name}
+                email={user.email}
+                verified={user.verified}
+                pfp={user.pfp}
+                onVerify={handleVerify}
+                onUnverify={handleUnverify}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
