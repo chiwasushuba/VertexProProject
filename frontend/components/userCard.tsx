@@ -4,7 +4,12 @@ import { Card, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
 
-const UserCard = ({id, name, email, pfp,verified }: UserType) => {
+type Props = UserType & {
+  onVerify: (id: string) => void
+  onUnverify: (id: string) => void
+}
+
+const UserCard = ({ id, name, email, pfp, verified, onVerify, onUnverify }: Props) => {
   return (
     <Card className="w-full bg-white shadow-lg rounded-lg p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       {/* User Info */}
@@ -23,16 +28,26 @@ const UserCard = ({id, name, email, pfp,verified }: UserType) => {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
-        {/* <Button>Edit</Button> */}
         <Button className="text-[0.800rem]">
           Send Intro Letter
         </Button>
 
         <Button className="bg-red-400 hover:bg-red-500">Delete</Button>
+
         {verified ? (
-          <Button className="bg-red-400 hover:bg-red-500">Unverify</Button>
+          <Button
+            className="bg-red-400 hover:bg-red-500"
+            onClick={() => onUnverify(id)}
+          >
+            Unverify
+          </Button>
         ) : (
-          <Button className="bg-green-400 hover:bg-green-500">Verify</Button>
+          <Button
+            className="bg-green-400 hover:bg-green-500"
+            onClick={() => onVerify(id)}
+          >
+            Verify
+          </Button>
         )}
       </div>
     </Card>
