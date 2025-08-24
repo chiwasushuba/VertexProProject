@@ -1,6 +1,12 @@
-// User Controller
+require('dotenv').config()
+
+const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const { bucket } = require('../utils/firebase'); // firebase bucket
+
+const createToken = (_id) => {
+  return jwt.sign({_id}, process.env.SECRET, { expiresIn: '5d'})
+}
 
 // Get all users
 const getUsers = async (req, res) => {
@@ -58,9 +64,6 @@ const deleteUser = async (req, res) => {
  * ADMIN DASHBOARD FUNCTIONS
  */
 const signup = async (req, res) => {
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
-    console.log("Validation error:", req.fileValidationError);
     try {
         if (req.fileValidationError) {
         return res.status(400).json({ error: req.fileValidationError });
@@ -107,7 +110,7 @@ const signup = async (req, res) => {
             role
         } = req.body;
 
-        const user = await User.create({
+        const user = await User.signup({
             firstName,
             lastName,
             middleName,
@@ -124,22 +127,37 @@ const signup = async (req, res) => {
             profileImage,
         });
 
-        const { password: _, ...safeUser } = user.toObject();
+        const token = createToken(user._id)
 
-        res.status(201).json({ message: "User created successfully", user: safeUser });
+        res.status(201).json({ message: "User created successfully", _id: user._id, token: token });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
 const login = async (req, res) => {
-    try {
-        const user = await User.login(req.body.email, req.body.password);
-        res.status(200).json({ message: "Login successful", user, token: user.token });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+  try {
+    const user = await User.login(req.body.email, req.body.password);
+
+    const token = createToken(user._id);
+
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profileImage: user.profileImage,
+      },
+      token
+    });
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
 };
+
 
 const getAllUserRole = async (req , res) => {
     try {

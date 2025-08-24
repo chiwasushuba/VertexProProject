@@ -52,11 +52,6 @@ userSchema.statics.signup = async function(userData) {
         password: hash
     });
 
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET, { expiresIn: '3d' });
-
-    user.token = token; // Add token to user object
-    await user.save(); //Update the user with the token
-
     return user;
 };
 
@@ -75,11 +70,6 @@ userSchema.statics.login = async function(email, password) {
     if (!isMatch) {
         throw new Error("Invalid email or password");
     }
-
-    const compareToken = jwt.sign({ _id: user._id }, process.env.SECRET, { expiresIn: '3d' });
-
-    user.token = compareToken; // Update token
-    await user.save();
 
     return user;
 }
