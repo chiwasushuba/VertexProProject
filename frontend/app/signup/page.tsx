@@ -8,79 +8,77 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from "react"
 import Link from "next/link"
-import { createWorker } from 'tesseract.js'
+import { Eye, EyeOff } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const SignupPage = () => {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [role, setRole] = useState("user")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
-  const [positionTitle, setPositionTitle] = useState("")
-  const [email, setEmail] = useState("")
-  const [registrationDate, setRegistrationDate] = useState("")
-  const [validUntilDate, setValidUntilDate] = useState("")
-  const [nbiFile, setNbiFile] = useState<File | null>(null)
-  const [fitToWork, setFitToWork] = useState<File | null>(null)
+  const [middleName, setMiddleName] = useState("")
+  const [gender, setGender] = useState("")
+  const [position, setPosition] = useState("")
+  const [completeAddress, setCompleteAddress] = useState("")
+  const [nbiRegistrationDate, setNbiRegistrationDate] = useState("")
+  const [nbiExpirationDate, setNbiExpirationDate] = useState("")
+  const [fitToWorkExpirationDate, setFitToWorkExpirationDate] = useState("")
   const [gcashNumber, setGcashNumber] = useState("")
   const [gcashName, setGcashName] = useState("")
-  const [idPhoto, setIdPhoto] = useState<File | null>(null)
-  const [address, setAddress] = useState("")
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleNBIUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    setIsProcessing(true)
-    setNbiFile(file)
-    
     try {
-      const worker = await createWorker('eng')
-      const { data } = await worker.recognize(file)
-      await worker.terminate()
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("role", role);
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("middleName", middleName);
+      formData.append("gender", gender);
+      formData.append("position", position);
+      formData.append("completeAddress", completeAddress);
+      formData.append("nbiRegistrationDate", nbiRegistrationDate);
+      formData.append("nbiExpirationDate", nbiExpirationDate);
+      formData.append("fitToWorkExpirationDate", fitToWorkExpirationDate);
+      formData.append("gcashNumber", gcashNumber);
+      formData.append("gcashName", gcashName);
+      if (profileImage) formData.append("profileImage", profileImage, profileImage.name);
 
-      // Extract dates from the recognized text
-      const text = data.text
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/signup`, {
+        method: "POST",
+        body: formData, // ✅ do NOT set Content-Type manually
+      });
 
-      console.log(text)
+      const data = await res.json(); // read body once
 
-      // Try multiple patterns to catch different date formats
-      const registrationMatch = text.match(/(Registration|Issued) Date:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i) || 
-                              text.match(/(Date Issued|Printed):\s*(\d{1,2}\/\d{1,2}\/\d{4})/i)
-      
-      const validUntilMatch = text.match(/(Valid Until|Expiration|Deadline):\s*(\d{1,2}\/\d{1,2}\/\d{4})/i)
+      console.log("Backend response:", res.status, data);
 
-      if (registrationMatch && registrationMatch[2]) {
-        setRegistrationDate(registrationMatch[2])
+      if (res.status !== 201) {
+        throw new Error(data.message || "Signup failed");
       }
-      
-      if (validUntilMatch && validUntilMatch[2]) {
-        setValidUntilDate(validUntilMatch[2])
-      }
-      
+
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      alert("Signup successful!");
+      router.push("/watch");
     } catch (error) {
-      console.error('OCR Error:', error)
+      console.error("Error submitting form:", error);
+      alert("Something went wrong! Check console for details.");
     } finally {
-      setIsProcessing(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log({
-      firstName,
-      lastName,
-      positionTitle,
-      email,
-      registrationDate,
-      validUntilDate,
-      nbiFile,
-      fitToWork,
-      gcashNumber,
-      gcashName,
-      idPhoto,
-      address,
-    })
-    alert("Form submitted! Check console for data.")
-  }
+
+
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
@@ -89,136 +87,118 @@ const SignupPage = () => {
         <Card className="max-w-3xl w-[80vh] p-6 md:p-8">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Sign Up</CardTitle>
-            <CardDescription className="">Enter your details to create an account.</CardDescription>
+            <CardDescription>Enter your details to create an account.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-6">
+              {/* Name Fields */}
               <div className="flex gap-2">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    placeholder="First Name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Last Name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                  />
-                </div>
+                <Input placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                <Input placeholder="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+                <Input placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 w-full">
-                <div className="space-y-2">
-                  <Label htmlFor="positionTitle">Position Title</Label>
-                  <Select value={positionTitle} onValueChange={setPositionTitle}>
-                    <SelectTrigger id="positionTitle" className="w-full">
-                      <SelectValue placeholder="Select position" />
-                    </SelectTrigger>
+              {/* Email */}
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+              {/* Password with toggle */}
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+                {/* Gender + Role + Position */}
+                <div className="grid grid-cols-3 gap-2">
+                  <Select value={gender} onValueChange={setGender}>
+                    <SelectTrigger className="w-full" ><SelectValue placeholder="Select Gender" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="staff">Staff</SelectItem>
-                      <SelectItem value="developer">Developer</SelectItem>
-                      <SelectItem value="designer">Designer</SelectItem>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Role" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                <Select value={position} onValueChange={setPosition}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Position" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Coordinator">Coordinator</SelectItem>
+                    <SelectItem value="Sampler">Sampler</SelectItem>
+                    <SelectItem value="Helper">Helper</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Address */}
+              <Input placeholder="Complete Address" value={completeAddress} onChange={(e) => setCompleteAddress(e.target.value)} />
+
+              {/* Dates */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label>NBI Registration Date</Label>
+                  <Input type="date" value={nbiRegistrationDate} onChange={(e) => setNbiRegistrationDate(e.target.value)} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    placeholder="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                <div>
+                  <Label>NBI Expiration Date</Label>
+                  <Input type="date" value={nbiExpirationDate} onChange={(e) => setNbiExpirationDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Fit-to-Work Expiration</Label>
+                  <Input type="date" value={fitToWorkExpirationDate} onChange={(e) => setFitToWorkExpirationDate(e.target.value)} />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Address (Optional)</Label>
-                <Input
-                  id="address"
-                  placeholder="123 Main St, City, Country"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-              </div>
+              {/* GCash */}
+              <Input placeholder="GCash Number" value={gcashNumber} onChange={(e) => setGcashNumber(e.target.value)} />
+              <Input placeholder="GCash Name" value={gcashName} onChange={(e) => setGcashName(e.target.value)} />
 
+              {/* Profile Image with Preview */}
               <div className="space-y-2">
-                <Label htmlFor="nbiRegistration">Upload NBI Clearance</Label>
+                <Label>Profile Image</Label>
                 <Input
-                  id="nbiRegistration"
                   type="file"
                   accept="image/*"
-                  onChange={handleNBIUpload}
-                  disabled={isProcessing}
+                  onChange={(e) => setProfileImage(e.target.files?.[0] || null)}
                 />
-                {isProcessing && <p className="text-sm text-gray-500">Processing NBI clearance...</p>}
-                
-                {registrationDate && (
-                  <div className="text-sm mt-2">
-                    <p>Registration Date: <span className="font-medium">{registrationDate}</span></p>
-                  </div>
-                )}
-                
-                {validUntilDate && (
-                  <div className="text-sm mt-1">
-                    <p>Valid Until: <span className="font-medium">{validUntilDate}</span></p>
+                {profileImage && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">Preview:</p>
+                    <img
+                      src={URL.createObjectURL(profileImage)}
+                      alt="Profile Preview"
+                      className="mt-1 h-32 w-32 object-cover rounded-full border"
+                    />
                   </div>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="fitToWork">Upload Fit to Work</Label>
-                <Input id="fitToWork" type="file" onChange={(e) => setFitToWork(e.target.files?.[0] || null)} />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="idPhoto">Upload ID Photo</Label>
-                  <Input id="idPhoto" type="file" onChange={(e) => setIdPhoto(e.target.files?.[0] || null)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gcashNumber">GCash Number</Label>
-                  <Input
-                    id="gcashNumber"
-                    placeholder="09XX-XXX-XXXX"
-                    value={gcashNumber}
-                    onChange={(e) => setGcashNumber(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="gcashName">GCash Name</Label>
-                <Input
-                  id="gcashName"
-                  placeholder="Full Name on GCash"
-                  value={gcashName}
-                  onChange={(e) => setGcashName(e.target.value)}
-                />
-              </div>
-
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Submit
+              <Button type="submit" className="w-full bg-primary" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Sign Up"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="justify-center text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link href="/login" className="ml-1 text-primary underline underline-offset-2">
-              Login
-            </Link>
+            Already have an account?
+            <Link href="/login" className="ml-1 text-primary underline underline-offset-2">Login</Link>
           </CardFooter>
         </Card>
       </main>

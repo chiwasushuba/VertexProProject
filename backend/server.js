@@ -7,8 +7,6 @@ const userRoutes = require("./routes/userRoute")
 
 const app = express();
 
-
-
 const port = 4000;
 
 // Middleware

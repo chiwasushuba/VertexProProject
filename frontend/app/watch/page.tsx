@@ -1,83 +1,132 @@
-'use client'
+"use client"
 
-import Header from '@/components/header'
-import { TermsDialog } from '@/components/termsDialog'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import React, { useEffect, useRef, useState } from 'react'
+import Header from "@/components/header"
+import { TermsDialog } from "@/components/termsDialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useRef, useState } from "react"
 
 const WatchPage = () => {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [lastTime, setLastTime] = useState(0)
-  const [videoDone, setVideoDone] = useState(false)
+  const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
+  const [lastTimes, setLastTimes] = useState([0, 0])
+  const [videoDone, setVideoDone] = useState([false, false])
   const [agreed, setAgreed] = useState(false)
   const [openDialog, setOpenDialog] = useState(false)
 
-  const tempUser = { name: 'John Doe' }
+  const tempUser = { name: "John Doe" }
 
-  useEffect(() => {
-    const video = videoRef.current
+  const handleTimeUpdate = (index: number) => {
+    const video = videoRefs[index].current
     if (!video) return
+    setLastTimes((prev) => {
+      const copy = [...prev]
+      copy[index] = video.currentTime
+      return copy
+    })
+  }
 
-    const handleTimeUpdate = () => setLastTime(video.currentTime)
-
-    const handleSeeking = () => {
-      if (video.currentTime > lastTime + 0.01) {
-        video.currentTime = lastTime
-      }
+  const handleSeeking = (index: number) => {
+    const video = videoRefs[index].current
+    if (!video) return
+    if (video.currentTime > lastTimes[index] + 0.01) {
+      video.currentTime = lastTimes[index]
     }
+  }
 
-    const handleEnded = () => {
-      setVideoDone(true) // just show the checkbox, don't open dialog yet
-    }
+  const handleEnded = (index: number) => {
+    setVideoDone((prev) => {
+      const copy = [...prev]
+      copy[index] = true
+      return copy
+    })
+  }
 
-    video.addEventListener('timeupdate', handleTimeUpdate)
-    video.addEventListener('seeking', handleSeeking)
-    video.addEventListener('ended', handleEnded)
-
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate)
-      video.removeEventListener('seeking', handleSeeking)
-      video.removeEventListener('ended', handleEnded)
-    }
-  }, [lastTime])
-
-  // When checkbox is toggled to true, open dialog
   useEffect(() => {
-    if (agreed) {
-      setOpenDialog(true)
-    }
+    videoRefs.forEach((videoRef, index) => {
+      const video = videoRef.current
+      if (!video) return
+
+      const onTimeUpdate = () => handleTimeUpdate(index)
+      const onSeeking = () => handleSeeking(index)
+      const onEnded = () => handleEnded(index)
+
+      video.addEventListener("timeupdate", onTimeUpdate)
+      video.addEventListener("seeking", onSeeking)
+      video.addEventListener("ended", onEnded)
+
+      return () => {
+        video.removeEventListener("timeupdate", onTimeUpdate)
+        video.removeEventListener("seeking", onSeeking)
+        video.removeEventListener("ended", onEnded)
+      }
+    })
+  }, [lastTimes])
+
+  useEffect(() => {
+    if (agreed) setOpenDialog(true)
   }, [agreed])
 
   return (
-    <div className='flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]'>
-      <Header variant="signedUser" location='Man Power Orientation'/>
+    <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
+      <Header variant="signedUser" location="Man Power Orientation" />
 
-      <div className="flex flex-col justify-center items-center min-h-screen gap-5">
-        <video ref={videoRef} width="640" height="360" controls>
-          <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"/>
-          Your browser does not support the video tag.
-        </video>
+      <div className="flex flex-col justify-center items-center min-h-screen gap-5 w-full px-4 py-8">
+        <Tabs defaultValue="tagalog" className="w-full max-w-[700px]">
+          <TabsList className="w-full bg-white/10 rounded-lg p-1 flex gap-2">
+            <TabsTrigger
+              value="tagalog"
+              className="flex-1 text-center py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black hover:bg-white/30 transition-all text-sm sm:text-base"
+            >
+              Tagalog
+            </TabsTrigger>
+            <TabsTrigger
+              value="english"
+              className="flex-1 text-center py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black hover:bg-white/30 transition-all text-sm sm:text-base"
+            >
+              English
+            </TabsTrigger>
+          </TabsList>
 
-        {videoDone && (
-          <div className="flex items-center space-x-2 pt-4">
-            <Checkbox 
-              id="terms" 
-              checked={agreed}
-              onCheckedChange={(checked) => setAgreed(!!checked)}
-            />
-            <Label htmlFor="terms">
-              I UNDERSTAND THE VIDEO PRESENTED AND WILL FOLLOW THE RULES
-            </Label>
-          </div>
-        )}
+          {/* Tagalog Video */}
+          <TabsContent value="tagalog">
+            <div className="w-full aspect-video">
+              <video ref={videoRefs[0]} className="w-full h-full rounded-lg" controls>
+                <source
+                  src="https://firebasestorage.googleapis.com/v0/b/vertexpro-inc-fcef5.firebasestorage.app/o/Manpower%20Briefing%20Deck%20(FILIPINO)%20-%20Revised.mp4?alt=media&token=55c4530e-fad0-49e4-8e4e-bbdfeed0fe79"
+                  type="video/mp4"
+                />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </TabsContent>
 
-        <TermsDialog 
-          name={tempUser.name} 
-          agreed={agreed} 
-          open={openDialog} 
-          setOpen={setOpenDialog} 
-        />
+          <TabsContent value="english">
+            <div className="w-full aspect-video">
+              <video ref={videoRefs[1]} className="w-full h-full rounded-lg" controls>
+                <source
+                  src="https://firebasestorage.googleapis.com/v0/b/vertexpro-inc-fcef5.firebasestorage.app/o/Manpower%20Briefing%20Deck%20(ENGLISH)%20-%20Revised.mp4?alt=media&token=a16f37c3-cc22-4c13-bc54-37e6fc4e43dc"
+                  type="video/mp4"
+                />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex items-start space-x-2 pt-4 max-w-[700px] w-full">
+          <Checkbox
+            id="terms"
+            checked={agreed}
+            onCheckedChange={(checked) => setAgreed(!!checked)}
+            className="mt-1 flex-shrink-0"
+          />
+          <Label htmlFor="terms" className="text-sm sm:text-base leading-relaxed cursor-pointer">
+            I UNDERSTAND THE VIDEO PRESENTED AND WILL FOLLOW THE RULES
+          </Label>
+        </div>
+
+        <TermsDialog name={tempUser.name} agreed={agreed} open={openDialog} setOpen={setOpenDialog} />
       </div>
     </div>
   )
