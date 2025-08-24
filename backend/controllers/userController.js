@@ -20,19 +20,17 @@ const getUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }   
-
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
-
+};
 
 // Update a user by ID
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User.findByIdAndUpdate(id, req.body);
+        const user = await User.findByIdAndUpdate(id, req.body, { new: true });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -54,67 +52,85 @@ const deleteUser = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
-
-
-
-
-/**
- * 
- * ADMIN DASHBOARD FUNCTIONS
- * 
- */
-
-
-const signup = async (req, res) => {
-  try {
-    if (req.fileValidationError) {
-      return res.status(400).json({ error: req.fileValidationError });
-    }
-
-    let profileImage = '';
-
-    if (req.file) {
-      const fileName = `users/${Date.now()}-${req.file.originalname}`;
-      const blob = bucket.file(fileName);
-
-      const blobStream = blob.createWriteStream({
-        metadata: { contentType: req.file.mimetype },
-      });
-
-      await new Promise((resolve, reject) => {
-        blobStream.on('error', reject);
-        blobStream.on('finish', async () => {
-          try {
-            await blob.makePublic();
-            profileImage = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-            resolve();
-          } catch (err) {
-            reject(err);
-          }
-        });
-        blobStream.end(req.file.buffer);
-      });
-    }
-
-    const { name, email, password, role } = req.body;
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role: role || 'user',
-      profileImage,
-    });
-
-    // Exclude password before sending back
-    const { password: _, ...safeUser } = user.toObject();
-
-    res.status(201).json({ message: "User created successfully", user: safeUser });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
 };
 
+/**
+ * ADMIN DASHBOARD FUNCTIONS
+ */
+const signup = async (req, res) => {
+    console.log("Body:", req.body);
+    console.log("File:", req.file);
+    console.log("Validation error:", req.fileValidationError);
+    try {
+        if (req.fileValidationError) {
+        return res.status(400).json({ error: req.fileValidationError });
+        }
+
+        let profileImage = '';
+
+        if (req.file) {
+        const fileName = `users/${Date.now()}-${req.file.originalname}`;
+        const blob = bucket.file(fileName);
+
+        const blobStream = blob.createWriteStream({
+            metadata: { contentType: req.file.mimetype },
+        });
+
+        await new Promise((resolve, reject) => {
+            blobStream.on('error', reject);
+            blobStream.on('finish', async () => {
+            try {
+                await blob.makePublic();
+                profileImage = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+                resolve();
+            } catch (err) {
+                reject(err);
+            }
+            });
+            blobStream.end(req.file.buffer);
+        });
+        }
+
+        const {
+            firstName,
+            lastName,
+            middleName,
+            gender,
+            position,
+            completeAddress,
+            nbiExpirationDate,
+            fitToWorkExpirationDate,
+            gcashNumber,
+            gcashName,
+            email,
+            password,
+            role
+        } = req.body;
+
+        const user = await User.create({
+            firstName,
+            lastName,
+            middleName,
+            gender,
+            position,
+            completeAddress,
+            nbiExpirationDate,
+            fitToWorkExpirationDate,
+            gcashNumber,
+            gcashName,
+            email,
+            password,
+            role: role || 'user',
+            profileImage,
+        });
+
+        const { password: _, ...safeUser } = user.toObject();
+
+        res.status(201).json({ message: "User created successfully", user: safeUser });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
 const login = async (req, res) => {
     try {
@@ -128,30 +144,26 @@ const login = async (req, res) => {
 const getAllUserRole = async (req , res) => {
     try {
         const users = await User.find({ role: 'user' });
-
         if(users.length === 0) {
             return res.status(404).json({ message: 'No users found' });
         }
-
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }   
-}
+};
 
 const getAllAdminRole = async (req, res) => {
     try {
         const users = await User.find({ role: 'admin' });   
-
         if(users.length === 0) {
             return res.status(404).json({ message: 'No admin users found' });
         }
-
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
+};
 
 const verifyUser = async (req, res) => {
     try {
@@ -160,12 +172,11 @@ const verifyUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         } 
-
         res.status(200).json({ message: 'User verified successfully', user });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
+};
 
 const unverifyUser = async (req, res) => {
     try {
@@ -206,4 +217,4 @@ module.exports = {
     verifyUser,
     unverifyUser,
     changeUserRole
-}
+};
