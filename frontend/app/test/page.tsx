@@ -2,6 +2,7 @@
 
 import { set } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
+import { RouteGuard } from '../RouteGuard';
 
 export default function CapturePage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -108,6 +109,7 @@ export default function CapturePage() {
   };
 
   return (
+    <RouteGuard allowedRoles={['user', 'admin', 'superAdmin']}>
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 p-4">
       <div className='flex flex-col items-center'>
         <h1 className="text-2xl font-semibold mb-4">Take a Picture</h1>
@@ -150,5 +152,6 @@ export default function CapturePage() {
         </div>
       )}
     </div>
+    </RouteGuard>
   );
 }

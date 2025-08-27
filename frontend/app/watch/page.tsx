@@ -6,6 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useEffect, useRef, useState } from "react"
+import { RouteGuard } from "../RouteGuard"
+import { Route } from "lucide-react"
 
 const WatchPage = () => {
   const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
@@ -68,6 +70,7 @@ const WatchPage = () => {
   }, [agreed])
 
   return (
+    <RouteGuard>
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       <Header variant="signedUser" location="Man Power Orientation" />
 
@@ -129,6 +132,7 @@ const WatchPage = () => {
         <TermsDialog name={tempUser.name} agreed={agreed} open={openDialog} setOpen={setOpenDialog} />
       </div>
     </div>
+    </RouteGuard>
   )
 }
 

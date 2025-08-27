@@ -5,12 +5,13 @@ import PizZip from "pizzip"
 import Docxtemplater from "docxtemplater"
 import { saveAs } from "file-saver"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Route } from "lucide-react"
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import Header from "@/components/header"
+import { RouteGuard } from "../RouteGuard"
 
 const LetterPage: React.FC = () => {
   const [templateFile, setTemplateFile] = useState<File | null>(null)
@@ -136,6 +137,7 @@ const LetterPage: React.FC = () => {
   )
 
   return (
+    <RouteGuard allowedRoles={['user', 'admin', 'superAdmin']}>
     <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       <Header variant='signedUser' />
       <div className="flex flex-col items-center p-4 w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] xl:w-[50vw] mx-auto">
@@ -205,6 +207,7 @@ const LetterPage: React.FC = () => {
         </form>
       </div>
     </div>
+    </RouteGuard>
   )
 }
 
