@@ -10,9 +10,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useSignup } from '@/hooks/useSignup'
 
 const SignupPage = () => {
   const router = useRouter()
+  const {signup, error} = useSignup()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -53,20 +56,8 @@ const SignupPage = () => {
       formData.append("gcashName", gcashName);
       if (profileImage) formData.append("profileImage", profileImage, profileImage.name);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/signup`, {
-        method: "POST",
-        body: formData, // ✅ do NOT set Content-Type manually
-      });
+      const res = await signup(formData);
 
-      const data = await res.json(); // read body once
-
-      console.log("Backend response:", res.status, data);
-
-      if (res.status !== 201) {
-        throw new Error(data.message || "Signup failed");
-      }
-
-      localStorage.setItem("userInfo", JSON.stringify(data));
       alert("Signup successful!");
       router.push("/watch");
     } catch (error) {

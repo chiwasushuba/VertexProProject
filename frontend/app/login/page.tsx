@@ -9,12 +9,14 @@ import Link from "next/link"
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation" // ✅ import useRouter
+import { useLogin } from '@/hooks/useLogin'
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const {login, error} = useLogin() 
 
   const router = useRouter() // ✅ initialize router
 
@@ -23,17 +25,11 @@ const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) throw new Error("Login failed");
-
-      const data = await res.json();
-      localStorage.setItem("userInfo", JSON.stringify(data));
-
+      const res = await login(email, password);
+      if (!res.success) throw new Error("Login failed");
+      
+      setEmail("")
+      setPassword("")
       alert("Login successful!");
       router.push("/watch");
     } catch (error) {
