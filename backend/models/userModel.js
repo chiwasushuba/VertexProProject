@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 userSchema.statics.signup = async function(userData) {
     const requiredFields = [
         "email", "password", "firstName", "lastName",
-        "gender", "position", "completeAddress", "nbiExpirationDate",
+        "gender", "position", "completeAddress", "nbiRegistrationDate",
         "nbiExpirationDate", "fitToWorkExpirationDate",
         "gcashNumber", "gcashName"
     ];

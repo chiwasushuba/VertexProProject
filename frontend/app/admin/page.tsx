@@ -6,6 +6,7 @@ import { UserType } from '@/types/userType'
 import UserCard from '@/components/userCard'
 import api from '@/utils/axios'
 import { AxiosError } from 'axios'
+import { RouteGuard } from '../RouteGuard'
 
 const Page = () => {
   const signedUser = true // This should be replaced with actual user authentication logic
@@ -69,6 +70,7 @@ const Page = () => {
     }
 
   return (
+    <RouteGuard allowedRoles={["admin", "superAdmin"]}>
     <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       {signedUser ? <Header variant='signedUser' /> : <Header variant='noSignedUser' />}
 
@@ -98,6 +100,7 @@ const Page = () => {
         </div>
       </div>
     </div>
+    </RouteGuard>
   )
 }
 

@@ -1,42 +1,31 @@
-'use client';
+// app/RouteGuard.tsx
+"use client"
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuthContext } from '@/hooks/useAuthContext';
+import { useAuthContext } from "@/hooks/useAuthContext"
+import { useRouter } from "next/navigation"
+import { useEffect, useState, ReactNode } from "react"
 
 interface RouteGuardProps {
-  children: React.ReactNode;
-  adminOnly?: boolean;    // only admins can access
-  guestOnly?: boolean;    // only guests (not logged in) can access
+  children: ReactNode
+  allowedRoles: string[]
 }
 
-export default function RouteGuard({ children, adminOnly = false, guestOnly = false }: RouteGuardProps) {
-  const { userInfo } = useAuthContext();
-  const router = useRouter();
+export const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
+  const { user, token } = useAuthContext()
+  const router = useRouter()
+  const [isAuthorized, setIsAuthorized] = useState(false)
 
   useEffect(() => {
-    // Admin-only route
-    if (adminOnly && (!userInfo || userInfo.role !== 'superAdmin')) {
-      router.replace('/unauthorized'); // or /login if not logged in
+    if (!user || !token) {
+      router.push("/login")
+    } else if (!allowedRoles.includes(user.role)) {
+      router.push("/unauthorized")
+    } else {
+      setIsAuthorized(true)
     }
+  }, [user, token, router, allowedRoles])
 
-    // Guest-only route (login/signup)
-    if (guestOnly && userInfo) {
-      router.replace('/'); // redirect logged-in users to home or dashboard
-    }
+  if (!isAuthorized) return null
 
-    // Regular auth route (must be logged in)
-    if (!adminOnly && !guestOnly && !userInfo) {
-      router.replace('/login');
-    }
-  }, [userInfo, router, adminOnly, guestOnly]);
-
-  // Prevent rendering until routing check is done
-  if ((adminOnly && (!userInfo || userInfo.role !== 'superAdmin')) ||
-      (guestOnly && userInfo) ||
-      (!adminOnly && !guestOnly && !userInfo)) {
-    return null;
-  }
-
-  return <>{children}</>;
+  return <>{children}</>
 }
