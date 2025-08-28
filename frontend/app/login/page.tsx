@@ -10,6 +10,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLogin } from '@/hooks/useLogin'
+import NavigationDialog from "@/components/navigationDialog"
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
@@ -17,6 +18,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { login, error } = useLogin()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const router = useRouter()
 
@@ -30,8 +32,7 @@ const LoginPage = () => {
 
       setEmail("")
       setPassword("")
-      alert("Login successful!")
-      router.push("/watch")
+      setIsDialogOpen(true)
     } catch (err) {
       console.error("Error logging in:", err)
     } finally {
@@ -129,6 +130,7 @@ const LoginPage = () => {
           </CardFooter>
         </Card>
       </div>
+      <NavigationDialog open={isDialogOpen} />
     </div>
   )
 }

@@ -1,35 +1,37 @@
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@radix-ui/react-dialog'
-import React from 'react'
-import { DialogHeader } from './ui/dialog'
+// NavigationDialog.tsx
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog" // <-- shadcn's wrapper, not radix directly
 import { useRouter } from "next/navigation"
+import { Label } from "@radix-ui/react-label"
 
+// NavigationDialog.tsx
 interface NavigationDialogProps {
-  setOpen: (open: boolean) => void
+  open: boolean
 }
 
-const NavigationDialog = ({setOpen} : NavigationDialogProps) => {
+const NavigationDialog = ({ open }: NavigationDialogProps) => {
   const router = useRouter()
 
-  const handleWatchVideButton = () => {
+  const handleWatchVideo = () => {
     router.push("/watch")
   }
 
-  const handleTimestampButton = () => {
+  const handleTimestamp = () => {
     router.push("/camera")
   }
 
-
-
-
   return (
-    <Dialog>
-      <DialogContent className='w-2/8 h-1/7'>
+    <Dialog open={open}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your account
-            and remove your data from our servers.
-          </DialogDescription>
+          <DialogTitle>Navigation</DialogTitle>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="cursor-pointer" onClick={handleWatchVideo}>
+              <Label>Go to Watch</Label>
+            </div>
+            <div className="cursor-pointer" onClick={handleTimestamp}>
+              <Label>Go to Timestamp Camera</Label>
+            </div>
+          </div>
         </DialogHeader>
       </DialogContent>
     </Dialog>
