@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from "next/link"
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import { useRouter } from "next/navigation" // ✅ import useRouter
+import { useRouter } from "next/navigation"
 import { useLogin } from '@/hooks/useLogin'
 
 const LoginPage = () => {
@@ -16,29 +16,28 @@ const LoginPage = () => {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const {login, error} = useLogin() 
+  const { login, error } = useLogin()
 
-  const router = useRouter() // ✅ initialize router
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+    e.preventDefault()
+    setIsSubmitting(true)
 
     try {
-      const res = await login(email, password);
-      if (!res.success) throw new Error("Login failed");
-      
+      const res = await login(email, password)
+      if (!res.success) throw new Error(error ? error : "Login failed")
+
       setEmail("")
       setPassword("")
-      alert("Login successful!");
-      router.push("/watch");
-    } catch (error) {
-      console.error("Error logging in:", error);
-      alert("Something went wrong! Check console for details.");
+      alert("Login successful!")
+      router.push("/watch")
+    } catch (err) {
+      console.error("Error logging in:", err)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
@@ -47,7 +46,9 @@ const LoginPage = () => {
         <Card className="max-w-md w-[90%] p-6 md:p-8">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Login</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="grid gap-6">
@@ -84,6 +85,13 @@ const LoginPage = () => {
                 </button>
               </div>
 
+              {/* Show error if any */}
+              {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
+                  {error}
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <input
@@ -101,14 +109,21 @@ const LoginPage = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Logging in..." : "Login"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="justify-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link href="/signup" className="ml-1 text-primary underline underline-offset-2">
+            <Link
+              href="/signup"
+              className="ml-1 text-primary underline underline-offset-2"
+            >
               Sign up
             </Link>
           </CardFooter>

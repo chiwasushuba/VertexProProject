@@ -14,7 +14,7 @@ import { useSignup } from '@/hooks/useSignup'
 
 const SignupPage = () => {
   const router = useRouter()
-  const {signup} = useSignup()
+  const { signup, error } = useSignup()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -37,43 +37,41 @@ const SignupPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+    e.preventDefault()
+    setIsSubmitting(true)
 
     try {
-      const formData = new FormData();
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("role", role);
-      formData.append("firstName", firstName);
-      formData.append("lastName", lastName);
-      formData.append("middleName", middleName);
-      formData.append("gender", gender);
-      formData.append("position", position);
-      formData.append("completeAddress", completeAddress);
-      formData.append("nbiRegistrationDate", nbiRegistrationDate);
-      formData.append("nbiExpirationDate", nbiExpirationDate);
-      formData.append("fitToWorkExpirationDate", fitToWorkExpirationDate);
-      formData.append("gcashNumber", gcashNumber);
-      formData.append("gcashName", gcashName);
-      if (profileImage) formData.append("profileImage", profileImage, profileImage.name);
-      if (nbiClearanceFile) formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name);
-      if (fitToWorkFile) formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name);
+      const formData = new FormData()
+      formData.append("email", email)
+      formData.append("password", password)
+      formData.append("role", role)
+      formData.append("firstName", firstName)
+      formData.append("lastName", lastName)
+      formData.append("middleName", middleName)
+      formData.append("gender", gender)
+      formData.append("position", position)
+      formData.append("completeAddress", completeAddress)
+      formData.append("nbiRegistrationDate", nbiRegistrationDate)
+      formData.append("nbiExpirationDate", nbiExpirationDate)
+      formData.append("fitToWorkExpirationDate", fitToWorkExpirationDate)
+      formData.append("gcashNumber", gcashNumber)
+      formData.append("gcashName", gcashName)
+      if (profileImage) formData.append("profileImage", profileImage, profileImage.name)
+      if (nbiClearanceFile) formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name)
+      if (fitToWorkFile) formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name)
 
-      const res = await signup(formData);
+      const res = await signup(formData)
 
-      alert("Signup successful!");
-      router.push("/watch");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert(`Something went wrong${error}`);
+      if (!res.success) throw new Error(error || "Signup failed")
+
+      alert("Signup successful!")
+      router.push("/watch")
+    } catch (err) {
+      console.error("Error submitting form:", err)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
-
-
-
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
@@ -115,23 +113,30 @@ const SignupPage = () => {
                 </button>
               </div>
 
-                {/* Gender + Role + Position */}
-                <div className="grid grid-cols-3 gap-2">
-                  <Select value={gender} onValueChange={setGender}>
-                    <SelectTrigger className="w-full" ><SelectValue placeholder="Select Gender" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Show error if any */}
+              {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
+                  {error}
+                </div>
+              )}
 
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger className="w-full"><SelectValue placeholder="Role" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Gender + Role + Position */}
+              <div className="grid grid-cols-3 gap-2">
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Role" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 <Select value={position} onValueChange={setPosition}>
                   <SelectTrigger className="w-full"><SelectValue placeholder="Position" /></SelectTrigger>
@@ -169,11 +174,7 @@ const SignupPage = () => {
               {/* Profile Image with Preview */}
               <div className="space-y-2">
                 <Label>Profile Image</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setProfileImage(e.target.files?.[0] || null)}
-                />
+                <Input type="file" accept="image/*" onChange={(e) => setProfileImage(e.target.files?.[0] || null)} />
                 {profileImage && (
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">Preview:</p>
@@ -187,21 +188,13 @@ const SignupPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>NBI Clearnace</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setNbiClearanceFile(e.target.files?.[0] || null)}
-                />
+                <Label>NBI Clearance</Label>
+                <Input type="file" accept="image/*" onChange={(e) => setNbiClearanceFile(e.target.files?.[0] || null)} />
               </div>
 
               <div className="space-y-2">
                 <Label>Fit To Work</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFitToWorkFile(e.target.files?.[0] || null)}
-                />
+                <Input type="file" accept="image/*" onChange={(e) => setFitToWorkFile(e.target.files?.[0] || null)} />
               </div>
 
               <Button type="submit" className="w-full bg-primary" disabled={isSubmitting}>
