@@ -105,11 +105,26 @@ export default function CapturePage() {
 
     const imageData = canvas.toDataURL('image/jpeg');
     setCapturedImage(imageData);
-    setTimestamp(new Date().toLocaleString());
+
+    // Always format timestamp in Philippine Time (Asia/Manila)
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Manila"
+    };
+
+    const phtTime = new Intl.DateTimeFormat("en-PH", options).format(new Date());
+    setTimestamp(phtTime);
   };
 
+
   return (
-    <RouteGuard allowedRoles={['user', 'admin', 'superAdmin']}>
+    <RouteGuard>
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 p-4">
       <div className='flex flex-col items-center'>
         <h1 className="text-2xl font-semibold mb-4">Take a Picture</h1>

@@ -18,7 +18,17 @@ const {
 } = require('../controllers/userController');
 
 // Signup with profile image upload
-router.post('/signup', upload.single("profileImage"), signup);
+// userRoute.js
+router.post(
+  "/signup",
+  upload.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "nbiClearance", maxCount: 1 },
+    { name: "fitToWork", maxCount: 1 },
+  ]),
+  signup
+);
+
 
 // Login
 router.post('/login', login);

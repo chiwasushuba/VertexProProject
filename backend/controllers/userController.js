@@ -64,78 +64,102 @@ const deleteUser = async (req, res) => {
  * ADMIN DASHBOARD FUNCTIONS
  */
 const signup = async (req, res) => {
-    try {
-        if (req.fileValidationError) {
-        return res.status(400).json({ error: req.fileValidationError });
-        }
+  try {
+    if (req.fileValidationError) {
+      return res.status(400).json({ error: req.fileValidationError });
+    }
 
-        let profileImage = '';
+    const { email } = req.body;
+    const uploadedFiles = {};
 
-        if (req.file) {
-        const fileName = `users/${Date.now()}-${req.file.originalname}`;
+    const uploadToFirebase = (file, folder) => {
+      return new Promise((resolve, reject) => {
+        const fileName = `${folder}${Date.now()}-${file.originalname}`;
         const blob = bucket.file(fileName);
 
         const blobStream = blob.createWriteStream({
-            metadata: { contentType: req.file.mimetype },
+          metadata: { contentType: file.mimetype },
         });
 
-        await new Promise((resolve, reject) => {
-            blobStream.on('error', reject);
-            blobStream.on('finish', async () => {
-            try {
-                await blob.makePublic();
-                profileImage = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-                resolve();
-            } catch (err) {
-                reject(err);
-            }
-            });
-            blobStream.end(req.file.buffer);
-        });
-        }
-
-        const {
-            firstName,
-            lastName,
-            middleName,
-            gender,
-            position,
-            completeAddress,
-            nbiRegistrationDate,
-            nbiExpirationDate,
-            fitToWorkExpirationDate,
-            gcashNumber,
-            gcashName,
-            email,
-            password,
-            role
-        } = req.body;
-
-        const user = await User.signup({
-            firstName,
-            lastName,
-            middleName,
-            gender,
-            position,
-            completeAddress,
-            nbiRegistrationDate,
-            nbiExpirationDate,
-            fitToWorkExpirationDate,
-            gcashNumber,
-            gcashName,
-            email,
-            password,
-            role: role || 'user',
-            profileImage,
+        blobStream.on("error", reject);
+        blobStream.on("finish", async () => {
+          try {
+            await blob.makePublic();
+            resolve(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+          } catch (err) {
+            reject(err);
+          }
         });
 
-        const token = createToken(user._id)
+        blobStream.end(file.buffer);
+      });
+    };
 
-        res.status(201).json({ message: "User created successfully", _id: user._id, token: token });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+    // user folder path
+    const userFolder = `users/${email}/required/`;
+
+    // Upload profileImage
+    if (req.files?.profileImage?.[0]) {
+      uploadedFiles.profileImage = await uploadToFirebase(req.files.profileImage[0], userFolder);
     }
+
+    // Upload nbiClearance
+    if (req.files?.nbiClearance?.[0]) {
+      uploadedFiles.nbiClearance = await uploadToFirebase(req.files.nbiClearance[0], userFolder);
+    }
+
+    // Upload fitToWork
+    if (req.files?.fitToWork?.[0]) {
+      uploadedFiles.fitToWork = await uploadToFirebase(req.files.fitToWork[0], userFolder);
+    }
+
+    // Extract other body fields
+    const {
+      firstName,
+      lastName,
+      middleName,
+      gender,
+      position,
+      completeAddress,
+      nbiRegistrationDate,
+      nbiExpirationDate,
+      fitToWorkExpirationDate,
+      gcashNumber,
+      gcashName,
+      password,
+      role,
+    } = req.body;
+
+    const user = await User.signup({
+      firstName,
+      lastName,
+      middleName,
+      gender,
+      position,
+      completeAddress,
+      nbiRegistrationDate,
+      nbiExpirationDate,
+      fitToWorkExpirationDate,
+      gcashNumber,
+      gcashName,
+      email,
+      password,
+      role: role || "user",
+      profileImage: uploadedFiles.profileImage,
+      nbiClearance: uploadedFiles.nbiClearance,
+      fitToWork: uploadedFiles.fitToWork,
+    });
+
+    const token = createToken(user._id);
+
+    res
+      .status(201)
+      .json({ message: "User created successfully", _id: user._id, token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 };
+
 
 const login = async (req, res) => {
   try {

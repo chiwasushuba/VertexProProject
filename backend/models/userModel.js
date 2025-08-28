@@ -13,12 +13,14 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
     position: {type: String, enum: ["Coordinator", "Sampler", "Helper"], required: true },
     completeAddress: { type: String, required: true },
+    nbiClearance: { type: String, required: true }, // FILE PATH
     nbiRegistrationDate: { type: Date, required: true },
     nbiExpirationDate: { type: Date, required: true },
+    fitToWork: { type: String, required: true }, // FILE PATH
     fitToWorkExpirationDate: { type: Date, required: true },
     gcashNumber: { type: Number, required: true },
     gcashName: { type: String, required: true },
-    profileImage: { type: String, default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s"},
+    profileImage: { type: String, required: true}, // FILE PATH
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     verified: { type: Boolean, default: false },

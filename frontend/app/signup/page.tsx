@@ -14,7 +14,7 @@ import { useSignup } from '@/hooks/useSignup'
 
 const SignupPage = () => {
   const router = useRouter()
-  const {signup, error} = useSignup()
+  const {signup} = useSignup()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -32,6 +32,8 @@ const SignupPage = () => {
   const [gcashNumber, setGcashNumber] = useState("")
   const [gcashName, setGcashName] = useState("")
   const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [nbiClearanceFile, setNbiClearanceFile] = useState<File | null>(null)
+  const [fitToWorkFile, setFitToWorkFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +57,8 @@ const SignupPage = () => {
       formData.append("gcashNumber", gcashNumber);
       formData.append("gcashName", gcashName);
       if (profileImage) formData.append("profileImage", profileImage, profileImage.name);
+      if (nbiClearanceFile) formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name);
+      if (fitToWorkFile) formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name);
 
       const res = await signup(formData);
 
@@ -62,7 +66,7 @@ const SignupPage = () => {
       router.push("/watch");
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Something went wrong! Check console for details.");
+      alert(`Something went wrong${error}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -180,6 +184,24 @@ const SignupPage = () => {
                     />
                   </div>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>NBI Clearnace</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setNbiClearanceFile(e.target.files?.[0] || null)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Fit To Work</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFitToWorkFile(e.target.files?.[0] || null)}
+                />
               </div>
 
               <Button type="submit" className="w-full bg-primary" disabled={isSubmitting}>
