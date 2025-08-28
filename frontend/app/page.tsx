@@ -1,6 +1,7 @@
 import Header from '@/components/header'
 import React from 'react'
 import { RouteGuard } from './RouteGuard'
+import NavigationDialog from '@/components/navigationDialog'
 
 const MainPage = () => {
   return (
