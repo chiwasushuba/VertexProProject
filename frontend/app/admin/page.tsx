@@ -7,9 +7,11 @@ import UserCard from '@/components/userCard'
 import api from '@/utils/axios'
 import { AxiosError } from 'axios'
 import { RouteGuard } from '../RouteGuard'
+import { Label } from '@/components/ui/label'
 
 const Page = () => {
   const signedUser = true // This should be replaced with actual user authentication logic
+  const [admins, setAdmins] = useState<UserType[]>([])
   const [users, setUsers] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -17,11 +19,19 @@ const Page = () => {
   useEffect(() => {
     const fetchAdmins = async () => {
       try {
-        const res = await api.get("/user")
-        console.log(res)
+        const resAdmin = await api.get("/user/role/admin")
+        const resUser = await api.get("/user/role/user")
 
         // Normalize API response to fit UserType
-        const normalizedUsers: UserType[] = res.data.map((user: any) => ({
+        const normalizedAdmins: UserType[] = resAdmin.data.map((user: any) => ({
+          id: user.id || user._id,
+          name: user.name || `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          pfp: user.profileImage || user.pfp,
+          verified: user.verified,
+        }))
+
+        const normalizedUsers: UserType[] = resUser.data.map((user: any) => ({
           id: user.id || user._id,
           name: user.name || `${user.firstName} ${user.lastName}`,
           email: user.email,
@@ -30,6 +40,7 @@ const Page = () => {
         }))
 
         setUsers(normalizedUsers)
+        setAdmins(normalizedAdmins)
       } catch (err) {
         const error = err as AxiosError<{ message?: string }>
         setError(error.response?.data?.message || "Failed to fetch admins")
@@ -77,13 +88,30 @@ const Page = () => {
       <div className='flex w-11/12 sm:w-8/12 min-h-screen flex-col items-center justify-start gap-5 bg-gray-200 rounded-lg shadow-lg p-6 mb-5'>
         <h1 className='text-[2rem] font-bold text-black'>Admin Page</h1>
 
-        <div className='w-full max-w-4xl'>
+        <div className='flex flex-col w-full max-w-4xl gap-10'>
           {loading && <p className="text-black">Loading admins...</p>}
           {error && <p className="text-red-500">{error}</p>}
           {!loading && !error && users.length === 0 && (
             <p className="text-black">No admins found</p>
           )}
           <div className='flex flex-col gap-2'>
+            <Label className='text-2xl'>Admins: </Label>
+            {admins.map(admin => (
+              <UserCard
+                key={admin.id}
+                id={admin.id}
+                name={admin.name}
+                email={admin.email}
+                verified={admin.verified}
+                pfp={admin.pfp}
+                onVerify={handleVerify}
+                onUnverify={handleUnverify}
+              />
+            ))}
+          </div>
+
+          <div className='flex flex-col gap-2'>
+            <Label className='text-2xl'>Users: </Label>
             {users.map(user => (
               <UserCard
                 key={user.id}

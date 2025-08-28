@@ -199,7 +199,7 @@ const getAllUserRole = async (req , res) => {
 
 const getAllAdminRole = async (req, res) => {
     try {
-        const users = await User.find({ role: 'admin' });   
+        const users = await User.find({ role: { $in: ['admin', 'superAdmin'] } });
         if(users.length === 0) {
             return res.status(404).json({ message: 'No admin users found' });
         }

@@ -23,7 +23,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }
     }
 
     // If allowedRoles are specified, enforce role-based access
-    if (allowedRoles && !allowedRoles.includes(userInfo.role)) {
+    if (allowedRoles && !allowedRoles.includes(userInfo.user.role)) {
       router.push("/unauthorized")
     }
   }, [userInfo, authIsReady, router, allowedRoles])

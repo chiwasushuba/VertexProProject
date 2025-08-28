@@ -137,7 +137,7 @@ const LetterPage: React.FC = () => {
   )
 
   return (
-    <RouteGuard allowedRoles={['user', 'admin', 'superAdmin']}>
+    <RouteGuard allowedRoles={['admin','superAdmin']}>
     <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       <Header variant='signedUser' />
       <div className="flex flex-col items-center p-4 w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] xl:w-[50vw] mx-auto">
