@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@radix-ui/react-label"
 import { useRouter } from "next/navigation"
+import { useAuthContext } from "@/hooks/useAuthContext"
 
 interface TermsDialogProps {
   name: string
@@ -19,11 +20,12 @@ interface TermsDialogProps {
 
 export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
   const router = useRouter()
+  const { userInfo } = useAuthContext()
 
   const handleContinue = async () => {
     // close dialog & navigate
     setOpen(false)
-    router.push("/")
+    router.push(`/profile/${userInfo.user._id}`)
   }
 
   return (
@@ -31,14 +33,14 @@ export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>
-            I accepted and agree to follow the rules in the video
+            I accept and agree to follow the rules in the video
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col space-y-4 justify-center">
           <div><Label className="text-gray-600 text-center text-sm">Note: You need to send a screenshot of this to your supervisor in order to prove that you watched the video</Label></div>
           <div className="flex justify-between">
-            <Label>Name: {name}</Label>
+            <Label>Name: {`${userInfo.user.firstName} ${userInfo.user.middleName ? userInfo.user.middleName + " " : ""}${userInfo.user.lastName}`}</Label>
             <Label>Date/Time: {new Date().toLocaleString()}</Label>
           </div>
           <Button
