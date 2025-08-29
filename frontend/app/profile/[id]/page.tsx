@@ -1,5 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
+import type React from "react"
+
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,9 +13,7 @@ import type { AxiosError } from "axios"
 import Header from "@/components/header"
 import { RouteGuard } from "@/app/RouteGuard"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { useAuthContext } from "@/hooks/useAuthContext"
-import { PhotoGallery } from "@/components/PhotoGallery"
-import { PhotoPreview } from "@/components/PhotoPreview"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
   Calendar,
   CreditCard,
@@ -26,8 +26,11 @@ import {
   MapPin,
   Mail,
   Trash2,
+  Plus,
 } from "lucide-react"
 import type { UserProfile } from "@/types/userProfileType"
+import { useAuthContext } from "@/hooks/useAuthContext"
+import { Label } from "@/components/ui/label"
 
 interface InfoItemProps {
   icon: any
@@ -47,6 +50,53 @@ function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
   )
 }
 
+interface PhotoPreviewProps {
+  src: string
+  alt: string
+}
+
+function PhotoPreview({ src, alt }: PhotoPreviewProps) {
+  const [open, setOpen] = useState(false)
+
+  if (!src) {
+    return (
+      <div className="flex items-center justify-center h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center">
+          <FileText className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+          <p className="text-sm text-gray-500">No {alt} uploaded</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="relative group cursor-pointer" onClick={() => setOpen(true)}>
+        <img
+          src={src || "/placeholder.svg"}
+          alt={alt}
+          className="w-full h-32 object-cover rounded-lg border shadow-sm group-hover:shadow-md transition-shadow"
+        />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="bg-white/90 rounded-full p-2">
+              <FileText className="h-4 w-4 text-gray-700" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-4xl p-0">
+          <DialogTitle>
+            <VisuallyHidden>{alt} Preview</VisuallyHidden>
+          </DialogTitle>
+          <img src={src || "/placeholder.svg"} alt={alt} className="w-full h-auto rounded-lg" />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
 export default function ProfilePage() {
   const { id } = useParams()
   const { userInfo } = useAuthContext()
@@ -55,30 +105,49 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [photos, setPhotos] = useState([
-    "/profile-photo-1.png",
-    "/profile-photo-2.png",
-    "/profile-photo-3.png",
-    "/profile-photo-4.png",
-    "/profile-photo-5.png",
-    "/profile-photo-6.png",
-  ])
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [photos, setPhotos] = useState<string[]>([])
+  const [file, setFile] = useState<File | null>(null)
+
 
   useEffect(() => {
+    if (!id) return;
+
     const fetchUser = async () => {
       try {
-        const res = await api.get(`/user/${id}`)
-        setUser(res.data)
+        const res = await api.get(`/user/${id}`);
+        setUser(res.data);
       } catch (err) {
-        const error = err as AxiosError<{ message?: string }>
-        setError(error.response?.data?.message || "Failed to fetch user")
+        const error = err as AxiosError<{ message?: string }>;
+        setError(error.response?.data?.message || "Failed to fetch user");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    if (id) fetchUser()
-  }, [id])
+    fetchUser();
+  }, [id]);
+
+  // Fetch photos when user changes
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const fetchPhotos = async () => {
+      try {
+        const res = await api.get(`/timestamp/user/${user._id}`);
+        console.log("fetched photos:", res.data);
+
+        // Flatten all pictures
+        const allPhotos = res.data.flatMap((item: any) => item.pictures);
+        setPhotos(allPhotos);
+      } catch (err) {
+        console.error("Failed to fetch photos:", err);
+      }
+    };
+
+    fetchPhotos();
+  }, [user]);
 
   if (loading) {
     return (
@@ -128,7 +197,7 @@ export default function ProfilePage() {
     )
   }
 
-  const isOwnProfile = userInfo?.user?._id === user._id
+  const isOwnProfile = userInfo?.user?._id === id
 
   const handleDeleteProfile = async () => {
     if (!isOwnProfile) return
@@ -147,18 +216,57 @@ export default function ProfilePage() {
     }
   }
 
-  const handleDeletePhoto = (index: number) => {
-    setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index))
+  const handleDeletePhoto = async (index: number, photoUrl: string) => {
+    if (!isOwnProfile) return
+
+    try {
+      await api.delete(`/user/${user?._id}/photos`, {
+        data: { photoUrl },
+      })
+      setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index))
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>
+      console.error("Failed to delete photo:", error.response?.data?.message || "Unknown error")
+      alert("Failed to delete photo. Please try again.")
+    }
+  }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+    }
   }
 
-  const handleUploadPhoto = (file: File) => {
-    // Create a URL for the uploaded file to display it immediately
-    const fileUrl = URL.createObjectURL(file)
-    setPhotos((prevPhotos) => [...prevPhotos, fileUrl])
+  const handleFileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!file || !isOwnProfile || !user?._id) return
 
-    // Here you would typically upload the file to your server
-    // Example: uploadPhotoToServer(file)
-    console.log("[v0] Photo uploaded:", file.name)
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("picture", file)
+
+      await api.post(`/timestamp`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${userInfo.token}`, // ✅ add token here
+        },
+      })
+
+      // Refetch photos after upload
+      const res = await api.get(`/timestamp/user/${user._id}`)
+      const allPhotos = res.data.flatMap((item: any) => item.pictures);
+      setPhotos(allPhotos);
+
+      setFile(null)
+    } catch (err) {
+      console.error("Upload failed:", err)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handlePhotoClick = (photo: string) => {
+    setSelectedPhoto(photo)
   }
 
   return (
@@ -194,6 +302,7 @@ export default function ProfilePage() {
               </CardHeader>
             </Card>
 
+            {/* Inline Photo Gallery */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -207,12 +316,71 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <PhotoGallery
-                  photos={photos}
-                  onDeletePhoto={handleDeletePhoto}
-                  onUploadPhoto={handleUploadPhoto}
-                  isOwner={isOwnProfile}
-                />
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="relative group aspect-square">
+                      <div className="w-full h-full cursor-pointer" onClick={() => handlePhotoClick(photo)}>
+                        <img
+                          src={photo || "/placeholder.svg"}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-full object-cover rounded-lg border shadow-sm group-hover:shadow-md transition-shadow"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-white/90 rounded-full p-2">
+                              <Camera className="h-4 w-4 text-gray-700" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {isOwnProfile && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeletePhoto(index, photo)
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  {!isOwnProfile && (!photos || photos.length === 0) && (
+                    <div className="col-span-full flex items-center justify-center h-40 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="text-center">
+                        <Camera className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">No photos uploaded</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <Separator className="my-4" />
+                <div className="w-full">
+                  {/* Upload form only for own profile */}
+                  {isOwnProfile && (
+                    <form
+                      onSubmit={handleFileSubmit}
+                      className="mb-6 flex flex-col sm:flex-row sm:items-center gap-2 w-full"
+                    >
+                      <input
+                        className="border p-2 rounded w-full sm:w-auto"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                      <Button
+                        type="submit"
+                        disabled={isUploading}
+                        className="w-full sm:w-auto"
+                      >
+                        {isUploading ? "Uploading..." : "Upload"}
+                      </Button>
+                    </form>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -225,10 +393,10 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem icon={Mail} label="Email" value={user.email} />
-                <InfoItem icon={User} label="Gender" value={user.gender} />
-                <InfoItem icon={User} label="Position" value={user.position} />
-                <InfoItem icon={MapPin} label="Address" value={user.completeAddress} />
+                <InfoItem icon={Mail} label="Email" value={user.email || ""} />
+                <InfoItem icon={User} label="Gender" value={user.gender || ""} />
+                <InfoItem icon={User} label="Position" value={user.position || ""} />
+                <InfoItem icon={MapPin} label="Address" value={user.completeAddress || ""} />
               </CardContent>
             </Card>
 
@@ -253,12 +421,12 @@ export default function ProfilePage() {
                       <InfoItem
                         icon={Calendar}
                         label="Registration Date"
-                        value={new Date(user.nbiRegistrationDate).toLocaleDateString()}
+                        value={user.nbiRegistrationDate ? new Date(user.nbiRegistrationDate).toLocaleDateString() : ""}
                       />
                       <InfoItem
                         icon={Calendar}
                         label="Expiration Date"
-                        value={new Date(user.nbiExpirationDate).toLocaleDateString()}
+                        value={user.nbiExpirationDate ? new Date(user.nbiExpirationDate).toLocaleDateString() : ""}
                       />
                     </div>
                   </div>
@@ -278,7 +446,11 @@ export default function ProfilePage() {
                       <InfoItem
                         icon={Calendar}
                         label="Expiration Date"
-                        value={new Date(user.fitToWorkExpirationDate).toLocaleDateString()}
+                        value={
+                          user.fitToWorkExpirationDate
+                            ? new Date(user.fitToWorkExpirationDate).toLocaleDateString()
+                            : ""
+                        }
                       />
                     </div>
                   </div>
@@ -295,8 +467,8 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <InfoItem icon={User} label="GCash Name" value={user.gcashName} />
-                <InfoItem icon={CreditCard} label="GCash Number" value={user.gcashNumber.toString()} />
+                <InfoItem icon={User} label="GCash Name" value={user.gcashName || ""} />
+                <InfoItem icon={CreditCard} label="GCash Number" value={user.gcashNumber?.toString() || ""} />
               </CardContent>
             </Card>
 
@@ -309,8 +481,16 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <InfoItem icon={Calendar} label="Created" value={new Date(user.createdAt).toLocaleDateString()} />
-                <InfoItem icon={Calendar} label="Last Updated" value={new Date(user.updatedAt).toLocaleDateString()} />
+                <InfoItem
+                  icon={Calendar}
+                  label="Created"
+                  value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ""}
+                />
+                <InfoItem
+                  icon={Calendar}
+                  label="Last Updated"
+                  value={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : ""}
+                />
               </CardContent>
             </Card>
 
@@ -366,6 +546,22 @@ export default function ProfilePage() {
             </Card>
           </div>
         </div>
+
+        {/* Photo Preview Dialog */}
+        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] p-2">
+            <DialogTitle className="sr-only">Photo Preview</DialogTitle>
+            {selectedPhoto && (
+              <div className="flex items-center justify-center">
+                <img
+                  src={selectedPhoto || "/placeholder.svg"}
+                  alt="Photo preview"
+                  className="max-w-full max-h-[80vh] object-contain rounded-lg"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

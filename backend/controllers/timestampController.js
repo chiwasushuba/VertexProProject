@@ -48,13 +48,43 @@ const uploadImage = async (req, res) => {
           await timestampDoc.save();
         }
 
-        res.status(201).json(timestampDoc);
+        res.status(201).json({ timestampDoc, pictureUrl });
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
     });
 
     blobStream.end(file.buffer);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteSingleImage = async (req, res) => {
+  try {
+
+    const timestampId = req.params.id;
+    const { imageUrl } = req.body; // Pass both in request body
+
+    const timestamp = await Timestamp.findById(timestampId);
+    if (!timestamp) {
+      return res.status(404).json({ error: 'Timestamp not found' });
+    }
+
+    // Remove image from array
+    const index = timestamp.pictures.indexOf(imageUrl);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Image not found in array' });
+    }
+    timestamp.pictures.splice(index, 1);
+
+    // Delete image from Firebase Storage
+    const path = imageUrl.split(`/${bucket.name}/`)[1];
+    await bucket.file(path).delete();
+
+    await timestamp.save();
+
+    res.status(200).json({ message: 'Image deleted successfully', timestamp });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -96,11 +126,10 @@ const getTimestampsOfUser = async (req, res) => {
 };
 
 
-
-
 module.exports = {
   getTimestamps,
   uploadImage,
   deleteImage,
-  getTimestampsOfUser
+  getTimestampsOfUser,
+  deleteSingleImage
 };
