@@ -85,11 +85,22 @@ const deleteImage = async (req, res) => {
   }
 };
 
+const getTimestampsOfUser = async (req, res) => {
+  try {
+    const userId = req.params.id; // Get user ID from auth middleware
+    const timestamps = await Timestamp.find({ user: userId }).sort({ createdAt: -1 });
+    res.status(200).json(timestamps);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 
 module.exports = {
   getTimestamps,
   uploadImage,
-  deleteImage
+  deleteImage,
+  getTimestampsOfUser
 };
