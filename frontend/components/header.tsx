@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MountainIcon } from "lucide-react"
 import { useLogout } from "@/hooks/useLogout"
+import { useAuthContext } from "@/hooks/useAuthContext"
 
 type HeaderVariant = "default" | "signedUser" | "noSignedUser" | "menu"
 
@@ -15,6 +16,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
+  const { userInfo } = useAuthContext()
   const { logout } = useLogout()
   const router = useRouter()
 

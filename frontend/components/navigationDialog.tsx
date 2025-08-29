@@ -1,9 +1,9 @@
 // NavigationDialog.tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog" // <-- shadcn's wrapper, not radix directly
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { Label } from "@radix-ui/react-label"
+import { MonitorPlay, Camera } from "lucide-react" // icons for better visuals
 
-// NavigationDialog.tsx
 interface NavigationDialogProps {
   open: boolean
 }
@@ -21,18 +21,34 @@ const NavigationDialog = ({ open }: NavigationDialogProps) => {
 
   return (
     <Dialog open={open}>
-      <DialogContent>
+      <DialogContent className="max-w-md rounded-2xl shadow-xl">
         <DialogHeader>
-          <DialogTitle>Navigation</DialogTitle>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="cursor-pointer" onClick={handleWatchVideo}>
-              <Label>Go to Watch</Label>
-            </div>
-            <div className="cursor-pointer" onClick={handleTimestamp}>
-              <Label>Go to Timestamp Camera</Label>
-            </div>
-          </div>
+          <DialogTitle className="text-xl font-semibold text-center">
+            Navigation
+          </DialogTitle>
         </DialogHeader>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          <Button
+            variant="outline"
+            className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-50"
+            onClick={handleWatchVideo}
+          >
+            <MonitorPlay className="w-6 h-6" />
+            <span className="text-sm font-medium">Go to Watch</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-50"
+            onClick={handleTimestamp}
+          >
+            <Camera className="w-6 h-6" />
+            <span className="text-sm font-medium text-center">
+              Timestamp Camera
+            </span>
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )
