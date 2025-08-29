@@ -13,8 +13,8 @@ const UnauthorizedPage = () => {
         You do not have permission to access this page.
       </p>
       {userInfo ? (
-        <Link href="/" className="text-blue-600 underline">
-          Go back to Home
+        <Link href="/login" className="text-blue-600 underline">
+          Go to Login
         </Link>
       ) : (
         <Link href="/login" className="text-blue-600 underline">

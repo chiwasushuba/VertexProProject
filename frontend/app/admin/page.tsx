@@ -8,22 +8,15 @@ import api from '@/utils/axios'
 import { AxiosError } from 'axios'
 import { RouteGuard } from '../RouteGuard'
 import { Label } from '@/components/ui/label'
-import { useAuthContext } from '@/hooks/useAuthContext'  // ✅ bring in auth
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { useRouter } from 'next/navigation'
 
 const Page = () => {
   const { userInfo } = useAuthContext()
   const router = useRouter()
 
-  // // If no user info, redirect to login (or another page)
-  // useEffect(() => {
-  //   if (!userInfo) {
-  //     router.push("/login")
-  //   }
-  // }, [userInfo, router])
-
   const currentUserRole: "user" | "admin" | "superAdmin" = userInfo?.user?.role || "user"
-  const currentUserId = userInfo?.user?._id || "" // <-- dynamic user id
+  const currentUserId = userInfo?.user?._id || ""
 
   const [admins, setAdmins] = useState<UserType[]>([])
   const [users, setUsers] = useState<UserType[]>([])
@@ -37,19 +30,21 @@ const Page = () => {
         const resUser = await api.get("/user/role/user")
 
         const normalizedAdmins: UserType[] = resAdmin.data.map((user: any) => ({
-          id: user.id || user._id,
-          name: user.name || `${user.firstName} ${user.lastName}`,
+          id: user._id,  // Always use _id here
+          name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           pfp: user.profileImage || user.pfp,
           verified: user.verified,
+          role: user.role,
         }))
 
         const normalizedUsers: UserType[] = resUser.data.map((user: any) => ({
-          id: user.id || user._id,
-          name: user.name || `${user.firstName} ${user.lastName}`,
+          id: user._id,
+          name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           pfp: user.profileImage || user.pfp,
           verified: user.verified,
+          role: user.role, 
         }))
 
         setUsers(normalizedUsers)
@@ -67,12 +62,9 @@ const Page = () => {
     }
   }, [userInfo])
 
-  // ✅ Verify handler
   const handleVerify = async (id: string) => {
     try {
       await api.patch(`/user/verify/${id}`)
-
-      // update both users and admins
       setUsers(prev =>
         prev.map(user =>
           user.id === id ? { ...user, verified: true } : user
@@ -88,12 +80,9 @@ const Page = () => {
     }
   }
 
-  // ✅ Unverify handler
   const handleUnverify = async (id: string) => {
     try {
       await api.patch(`/user/unverify/${id}`)
-
-      // update both users and admins
       setUsers(prev =>
         prev.map(user =>
           user.id === id ? { ...user, verified: false } : user
@@ -109,7 +98,6 @@ const Page = () => {
     }
   }
 
-  // Delete handler (only superAdmin)
   const handleDelete = async (id: string) => {
     if (currentUserRole !== "superAdmin") return
     try {
@@ -120,6 +108,26 @@ const Page = () => {
       console.error("Failed to delete user:", err)
     }
   }
+
+  const handleChangeRole = async (
+    id: string,
+    newRole: "user" | "admin" | "superAdmin"
+  ) => {
+    try {
+      await api.patch(`/user/changerole/${id}`, { role: newRole });
+
+      // update both states
+      setUsers(prev =>
+        prev.map(user => (user.id === id ? { ...user, role: newRole } : user))
+      );
+      setAdmins(prev =>
+        prev.map(admin => (admin.id === id ? { ...admin, role: newRole } : admin))
+      );
+    } catch (err) {
+      console.error("Failed to change role:", err);
+    }
+  };
+
 
   return (
     <RouteGuard allowedRoles={["admin", "superAdmin"]}>
@@ -133,7 +141,7 @@ const Page = () => {
             {loading && <p className="text-black">Loading admins...</p>}
             {error && <p className="text-red-500">{error}</p>}
             {!loading && !error && users.length === 0 && (
-              <p className="text-black">No admins found</p>
+              <p className="text-black">No users found</p>
             )}
             
             <div className='flex flex-col gap-2'>
@@ -146,9 +154,11 @@ const Page = () => {
                   email={admin.email}
                   verified={admin.verified}
                   pfp={admin.pfp}
+                  role={admin.role}
                   onVerify={handleVerify}
                   onUnverify={handleUnverify}
                   onDelete={handleDelete}
+                  onChangeRole={handleChangeRole}
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                 />
@@ -165,9 +175,11 @@ const Page = () => {
                   email={user.email}
                   verified={user.verified}
                   pfp={user.pfp}
+                  role={user.role}
                   onVerify={handleVerify}
                   onUnverify={handleUnverify}
                   onDelete={handleDelete}
+                  onChangeRole={handleChangeRole}
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                 />

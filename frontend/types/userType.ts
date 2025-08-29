@@ -4,4 +4,6 @@ export interface UserType {
   email: string;
   pfp: string;
   verified: boolean;
+  role: "user" | "admin" | "superAdmin"
 }
+
