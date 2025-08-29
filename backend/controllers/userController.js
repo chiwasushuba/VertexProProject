@@ -154,7 +154,17 @@ const signup = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "User created successfully", _id: user._id, token });
+      .json({ message: "User created successfully", user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profileImage: user.profileImage,
+        verified: user.verified
+      },
+      token
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -176,6 +186,7 @@ const login = async (req, res) => {
         lastName: user.lastName,
         role: user.role,
         profileImage: user.profileImage,
+        verified: user.verified
       },
       token
     });
