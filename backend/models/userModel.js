@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     verified: { type: Boolean, default: false },
+    request: { type: Boolean, default: false }
 });
 
 userSchema.statics.signup = async function(userData) {

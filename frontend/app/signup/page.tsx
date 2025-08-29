@@ -65,7 +65,7 @@ const SignupPage = () => {
       if (!res.success) throw new Error(error || "Signup failed")
 
       alert("Signup successful!")
-      router.push("/watch")
+      router.push("/login")
     } catch (err) {
       console.error("Error submitting form:", err)
     } finally {
@@ -155,15 +155,15 @@ const SignupPage = () => {
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <Label>NBI Registration Date</Label>
-                  <Input type="date" value={nbiRegistrationDate} onChange={(e) => setNbiRegistrationDate(e.target.value)} />
+                  <Input type="date" value={nbiRegistrationDate} onChange={(e) => setNbiRegistrationDate(e.target.value)} required/>
                 </div>
                 <div>
                   <Label>NBI Expiration Date</Label>
-                  <Input type="date" value={nbiExpirationDate} onChange={(e) => setNbiExpirationDate(e.target.value)} />
+                  <Input type="date" value={nbiExpirationDate} onChange={(e) => setNbiExpirationDate(e.target.value)} required/>
                 </div>
                 <div>
                   <Label>Fit-to-Work Expiration</Label>
-                  <Input type="date" value={fitToWorkExpirationDate} onChange={(e) => setFitToWorkExpirationDate(e.target.value)} />
+                  <Input type="date" value={fitToWorkExpirationDate} onChange={(e) => setFitToWorkExpirationDate(e.target.value)} required/>
                 </div>
               </div>
 

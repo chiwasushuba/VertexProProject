@@ -500,13 +500,22 @@ export default function ProfilePage() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="flex justify-between items-center">
-                {isOwnProfile && (
+                {isOwnProfile ? (
                   <>
                     <Button
                       onClick={() => console.log("Request Store Intro Letter")}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       Request Store Intro Letter
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => console.log("Request Store Intro Letter")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Send Store Intro Letter
                     </Button>
                   </>
                 )}
