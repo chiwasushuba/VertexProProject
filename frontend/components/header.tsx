@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { MountainIcon } from "lucide-react"
 import { useLogout } from "@/hooks/useLogout"
 import { useAuthContext } from "@/hooks/useAuthContext"
+import { Label } from "@radix-ui/react-label"
 
 type HeaderVariant = "default" | "signedUser" | "noSignedUser" | "menu"
 
@@ -66,7 +67,20 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
             <span>{location}</span>
           </div>
         )}
-        {actionSection}
+        {(userInfo?.user.role === 'admin' || userInfo?.user.role === 'superAdmin') &&
+          <div className="flex items-center space-x-4">
+          <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
+            Dashboard
+          </Link>
+          <Label className="flex items-center gap-2 font-semibold text-primary-foreground"> | </Label>
+          <Link href={"/letter"} className="flex items-center gap-2 font-semibold text-primary-foreground">
+            Letter
+          </Link>
+          {actionSection}
+          </div>
+          
+        }
+        
       </div>
     </header>
   )

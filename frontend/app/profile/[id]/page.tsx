@@ -30,7 +30,7 @@ import {
 } from "lucide-react"
 import type { UserProfile } from "@/types/userProfileType"
 import { useAuthContext } from "@/hooks/useAuthContext"
-import { Label } from "@/components/ui/label"
+import TemplateDialog from "@/components/templateDialog"
 
 interface InfoItemProps {
   icon: any
@@ -97,57 +97,60 @@ function PhotoPreview({ src, alt }: PhotoPreviewProps) {
   )
 }
 
+/* -------------------------
+   TemplateDialog component
+   ------------------------- */
+
+/* -------------------------
+   ProfilePage (main export)
+   ------------------------- */
 export default function ProfilePage() {
   const { id } = useParams()
   const { userInfo } = useAuthContext()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [photos, setPhotos] = useState<string[]>([])
   const [file, setFile] = useState<File | null>(null)
-
+  const [tempDialogOpen, setTempDialogOpen] = useState(false)
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
 
     const fetchUser = async () => {
       try {
-        const res = await api.get(`/user/${id}`);
-        setUser(res.data);
+        const res = await api.get(`/user/${id}`)
+        setUser(res.data)
       } catch (err) {
-        const error = err as AxiosError<{ message?: string }>;
-        setError(error.response?.data?.message || "Failed to fetch user");
+        const error = err as AxiosError<{ message?: string }>
+        setError(error.response?.data?.message || "Failed to fetch user")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUser();
-  }, [id]);
+    fetchUser()
+  }, [id])
 
   // Fetch photos when user changes
   useEffect(() => {
-    if (!user?._id) return;
+    if (!user?._id) return
 
     const fetchPhotos = async () => {
       try {
-        const res = await api.get(`/timestamp/user/${user._id}`);
-        console.log("fetched photos:", res.data);
-
+        const res = await api.get(`/timestamp/user/${user._id}`)
         // Flatten all pictures
-        const allPhotos = res.data.flatMap((item: any) => item.pictures);
-        setPhotos(allPhotos);
+        const allPhotos = res.data.flatMap((item: any) => item.pictures)
+        setPhotos(allPhotos)
       } catch (err) {
-        console.error("Failed to fetch photos:", err);
+        console.error("Failed to fetch photos:", err)
       }
-    };
+    }
 
-    fetchPhotos();
-  }, [user]);
+    fetchPhotos()
+  }, [user])
 
   if (loading) {
     return (
@@ -199,20 +202,17 @@ export default function ProfilePage() {
 
   const isOwnProfile = userInfo?.user?._id === id
 
-  const handleDeleteProfile = async () => {
-    if (!isOwnProfile) return
+  const handleSendLetter = async () => {
+    setTempDialogOpen(true)
+  }
 
-    setIsDeleting(true)
+  const handleRequestLetter = async () => {
     try {
-      await api.delete(`/user/${user._id}`)
-      window.location.href = "/"
-    } catch (err) {
-      const error = err as AxiosError<{ message?: string }>
-      console.error("Failed to delete profile:", error.response?.data?.message || "Unknown error")
-      alert("Failed to delete profile. Please try again.")
-    } finally {
-      setIsDeleting(false)
-      setShowDeleteDialog(false)
+      await api.patch(`/user/changerequest/${userInfo.user._id}`)
+      alert("Request submitted.")
+    } catch (e) {
+      console.error(e)
+      alert("Failed to request letter.")
     }
   }
 
@@ -254,8 +254,8 @@ export default function ProfilePage() {
 
       // Refetch photos after upload
       const res = await api.get(`/timestamp/user/${user._id}`)
-      const allPhotos = res.data.flatMap((item: any) => item.pictures);
-      setPhotos(allPhotos);
+      const allPhotos = res.data.flatMap((item: any) => item.pictures)
+      setPhotos(allPhotos)
 
       setFile(null)
     } catch (err) {
@@ -268,6 +268,14 @@ export default function ProfilePage() {
   const handlePhotoClick = (photo: string) => {
     setSelectedPhoto(photo)
   }
+
+  // Prepare dialog props
+  const fullName = `${user.firstName} ${user.middleName ? user.middleName + " " : ""}${user.lastName}`
+  const role = user.position || user.role || ""
+  const startTime = (user as any).startTime || "" // adjust if you store shift times
+  const endTime = (user as any).endTime || ""
+  const email = user.email || ""
+  const token = userInfo?.token || null
 
   return (
     <RouteGuard>
@@ -371,11 +379,7 @@ export default function ProfilePage() {
                         accept="image/*"
                         onChange={handleFileChange}
                       />
-                      <Button
-                        type="submit"
-                        disabled={isUploading}
-                        className="w-full sm:w-auto"
-                      >
+                      <Button type="submit" disabled={isUploading} className="w-full sm:w-auto">
                         {isUploading ? "Uploading..." : "Upload"}
                       </Button>
                     </form>
@@ -447,9 +451,7 @@ export default function ProfilePage() {
                         icon={Calendar}
                         label="Expiration Date"
                         value={
-                          user.fitToWorkExpirationDate
-                            ? new Date(user.fitToWorkExpirationDate).toLocaleDateString()
-                            : ""
+                          user.fitToWorkExpirationDate ? new Date(user.fitToWorkExpirationDate).toLocaleDateString() : ""
                         }
                       />
                     </div>
@@ -501,23 +503,13 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="flex justify-between items-center">
                 {isOwnProfile ? (
-                  <>
-                    <Button
-                      onClick={() => console.log("Request Store Intro Letter")}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Request Store Intro Letter
-                    </Button>
-                  </>
+                  <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
+                    Request Store Intro Letter
+                  </Button>
                 ) : (
-                  <>
-                    <Button
-                      onClick={() => console.log("Request Store Intro Letter")}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Send Store Intro Letter
-                    </Button>
-                  </>
+                  <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
+                    Send Store Intro Letter
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -540,7 +532,16 @@ export default function ProfilePage() {
           </DialogContent>
         </Dialog>
 
-        
+        {/* Template Dialog */}
+        <TemplateDialog
+          name={fullName}
+          role={role}
+          startTime={startTime}
+          endTime={endTime}
+          email={email}
+          open={tempDialogOpen}
+          setOpen={setTempDialogOpen}
+        />
       </div>
     </RouteGuard>
   )

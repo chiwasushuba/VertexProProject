@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button"
 import Header from "@/components/header"
 import { RouteGuard } from "../RouteGuard"
 
+const TEMPLATE_URL = "/templateWord.docx" // public folder
+
 const LetterPage: React.FC = () => {
-  const [templateFile, setTemplateFile] = useState<File | null>(null)
   const [form, setForm] = useState({
     storeBranch: "",
     address: "",
@@ -25,6 +26,8 @@ const LetterPage: React.FC = () => {
     dateToday: new Date().toISOString().split("T")[0],
     dateStart: "",
     dateEnd: "",
+    startTime: "",
+    endTime: "",
   })
 
   useEffect(() => {
@@ -37,13 +40,6 @@ const LetterPage: React.FC = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setTemplateFile(file)
-    }
-  }
-
   const formatDate = (rawDate: string): string => {
     if (!rawDate) return ""
     const date = new Date(rawDate)
@@ -54,49 +50,36 @@ const LetterPage: React.FC = () => {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!templateFile) {
-      alert("Please upload a .docx template file.")
-      return
-    }
+    try {
+      const response = await fetch(TEMPLATE_URL)
+      if (!response.ok) throw new Error("Failed to fetch template file")
 
-    const reader = new FileReader()
-    reader.readAsArrayBuffer(templateFile)
+      const arrayBuffer = await response.arrayBuffer()
+      const zip = new PizZip(arrayBuffer)
+      const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true })
 
-    reader.onload = () => {
-      try {
-        const zip = new PizZip(reader.result as ArrayBuffer)
-        const doc = new Docxtemplater(zip, {
-          paragraphLoop: true,
-          linebreaks: true,
-        })
-
-        const formattedData = {
-          ...form,
-          dateToday: formatDate(form.dateToday),
-          dateStart: formatDate(form.dateStart),
-          dateEnd: formatDate(form.dateEnd),
-        }
-
-        doc.setData(formattedData)
-        doc.render()
-
-        const output = doc.getZip().generate({
-          type: "blob",
-          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        })
-
-        saveAs(output, "GeneratedTemplate.docx")
-      } catch (error) {
-        console.error("Document generation error:", error)
-        alert("Failed to generate document. Check template placeholders.")
+      const formattedData = {
+        ...form,
+        dateToday: formatDate(form.dateToday),
+        dateStart: formatDate(form.dateStart),
+        dateEnd: formatDate(form.dateEnd),
       }
-    }
 
-    reader.onerror = () => {
-      console.error("File reading error:", reader.error)
-      alert("Could not read the template file.")
+      doc.setData(formattedData)
+      doc.render()
+
+      const output = doc.getZip().generate({
+        type: "blob",
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      })
+
+      saveAs(output, "GeneratedTemplate.docx")
+    } catch (error) {
+      console.error("Document generation error:", error)
+      alert("Failed to generate document. Check template link or placeholders.")
     }
   }
 
@@ -125,12 +108,20 @@ const LetterPage: React.FC = () => {
               mode="single"
               selected={selectedDate}
               onSelect={(date) => {
+                if (!date) {
+                  setForm((prev) => ({ ...prev, [fieldName]: "" }))
+                  return
+                }
+                const localDate = new Date(date)
+                const yyyy = localDate.getFullYear()
+                const mm = String(localDate.getMonth() + 1).padStart(2, "0")
+                const dd = String(localDate.getDate()).padStart(2, "0")
                 setForm((prev) => ({
                   ...prev,
-                  [fieldName]: date ? date.toISOString().split("T")[0] : "",
+                  [fieldName]: `${yyyy}-${mm}-${dd}`,
                 }))
               }}
-              initialFocus
+              className="!bg-transparent"
             />
           </PopoverContent>
         </Popover>
@@ -141,29 +132,36 @@ const LetterPage: React.FC = () => {
   return (
     <RouteGuard allowedRoles={['admin','superAdmin']}>
       <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
-        <Header variant='signedUser' />
+        <Header variant="signedUser" />
         <div className="flex flex-col items-center p-4 w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] xl:w-[50vw] mx-auto">
           <h2 className="text-2xl font-bold mb-6 mt-6">Store Intro Letter</h2>
           <form className="flex flex-col gap-4 bg-gray-100 p-8 w-full rounded-2xl" onSubmit={handleSubmit}>
-            
-            {/* Upload Template */}
-            <div className="flex flex-col items-start">
-              <h3 className="font-medium mb-1">Upload Template (.docx)</h3>
-              <input
-                type="file"
-                accept=".docx"
-                onChange={handleFileChange}
-                className="w-full border p-2 rounded"
-              />
-            </div>
-
-            {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {renderDatePicker("Start Date", form.dateStart, "dateStart")}
               {renderDatePicker("End Date", form.dateEnd, "dateEnd")}
             </div>
-            
-            {/* Store, Branch */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div className="flex flex-col items-start">
+                <h3 className="font-medium mb-1">Start Time</h3>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={form.startTime}
+                  onChange={handleInputChange}
+                  className="w-full border p-2 rounded"
+                />
+              </div>
+              <div className="flex flex-col items-start">
+                <h3 className="font-medium mb-1">End Time</h3>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={form.endTime}
+                  onChange={handleInputChange}
+                  className="w-full border p-2 rounded"
+                />
+              </div>
+            </div>
             <div className="flex flex-col items-start">
               <h3 className="font-medium mb-1">Store, Branch</h3>
               <input
@@ -174,8 +172,6 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-            
-            {/* Address */}
             <div className="flex flex-col items-start">
               <h3 className="font-medium mb-1">Address</h3>
               <input
@@ -186,8 +182,6 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-
-            {/* Client Name */}
             <div className="flex flex-col items-start">
               <h3 className="font-medium mb-1">Client Name</h3>
               <input
@@ -198,8 +192,6 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-            
-            {/* Your Number */}
             <div className="flex flex-col items-start">
               <h3 className="font-medium mb-1">Your Number</h3>
               <input
@@ -210,8 +202,6 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-
-            {/* Your Role */}
             <div className="flex flex-col items-start">
               <h3 className="font-medium mb-1">Your Role</h3>
               <input
@@ -222,8 +212,6 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-
-            {/* Your Name */}
             <div className="flex flex-col items-start">
               <h3 className="font-medium mb-1">Your Name</h3>
               <input
@@ -234,8 +222,6 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
-
-            {/* Submit */}
             <div className="flex flex-col items-start">
               <button
                 type="submit"

@@ -1,0 +1,26 @@
+const multer = require('multer');
+const path = require('path');
+
+// Wala na 
+const storage = multer.memoryStorage();
+
+// File filter to allow only specific image types no videos allowed baka di kayanin ng cloud storage ko
+const fileFilter = (req, file, callback) => {
+    const allowedTypes = /\.(pdf|docx)$/i;
+    
+    if (!file.originalname.match(allowedTypes)) {
+        req.fileValidationError = 'Only these files (PDF and DOCX) are allowed!';
+        return callback(null, false);
+    }
+
+    callback(null, true);
+};
+
+// Multer upload configuration
+const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Max file size 5MB just replace 5 on how many mb you want 
+    fileFilter
+});
+
+module.exports = upload;

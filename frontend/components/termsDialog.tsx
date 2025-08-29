@@ -40,7 +40,7 @@ export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
         <div className="flex flex-col space-y-4 justify-center">
           <div><Label className="text-gray-600 text-center text-sm">Note: You need to send a screenshot of this to your supervisor in order to prove that you watched the video</Label></div>
           <div className="flex justify-between">
-            <Label>Name: {`${userInfo.user.firstName} ${userInfo.user.middleName ? userInfo.user.middleName + " " : ""}${userInfo.user.lastName}`}</Label>
+            <Label>Name: {`${userInfo?.user?.firstName} ${userInfo?.user?.middleName ? userInfo?.user?.middleName + " " : ""}${userInfo?.user?.lastName}`}</Label>
             <Label>Date/Time: {new Date().toLocaleString()}</Label>
           </div>
           <Button
