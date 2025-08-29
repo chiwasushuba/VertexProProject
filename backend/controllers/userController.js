@@ -71,6 +71,12 @@ const signup = async (req, res) => {
 
     const { email } = req.body;
     const uploadedFiles = {};
+    const requiredFiles = ["profileImage", "nbiClearance", "fitToWork"];
+    for (const fileField of requiredFiles) {
+      if (!req.files?.[fileField]?.[0]) {
+        return res.status(400).json({ error: `${fileField} is required` });
+      }
+    }
 
     const uploadToFirebase = (file, folder) => {
       return new Promise((resolve, reject) => {
@@ -130,6 +136,10 @@ const signup = async (req, res) => {
       role,
     } = req.body;
 
+    if (gcashNumber && isNaN(Number(gcashNumber))) {
+      return res.status(400).json({ error: "Gcash number must be a valid number" });
+    }
+
     const user = await User.signup({
       firstName,
       lastName,
@@ -154,7 +164,17 @@ const signup = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "User created successfully", _id: user._id, token });
+      .json({ message: "User created successfully", user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profileImage: user.profileImage,
+        verified: user.verified
+      },
+      token
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -167,6 +187,10 @@ const login = async (req, res) => {
 
     const token = createToken(user._id);
 
+    if(user.verified === false) {
+      return res.status(401).json({ error: "User not verified. Please contact admin." });
+    }
+
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -176,6 +200,7 @@ const login = async (req, res) => {
         lastName: user.lastName,
         role: user.role,
         profileImage: user.profileImage,
+        verified: user.verified
       },
       token
     });

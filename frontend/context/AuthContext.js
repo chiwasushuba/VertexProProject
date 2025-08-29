@@ -25,7 +25,7 @@ export const AuthContextProvider = ({children}) => {
   })
 
   useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
 
     if(userInfo){
       dispatch({type: "LOGIN", payload: userInfo})

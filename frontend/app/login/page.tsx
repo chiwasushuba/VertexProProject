@@ -17,24 +17,35 @@ const LoginPage = () => {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { login, error } = useLogin()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
 
+  const { login} = useLogin()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setLocalError(null)
 
     try {
       const res = await login(email, password)
-      if (!res.success) throw new Error(error ? error : "Login failed")
 
+      if (!res?.success) {
+        setLocalError(res.error || "Login failed")
+        return
+      }
+
+      // Clear fields
       setEmail("")
       setPassword("")
+
+      // Show dialog only if login is successful
       setIsDialogOpen(true)
-    } catch (err) {
+
+    } catch (err: any) {
       console.error("Error logging in:", err)
+      setLocalError(err.message || "Login failed")
     } finally {
       setIsSubmitting(false)
     }
@@ -87,9 +98,9 @@ const LoginPage = () => {
               </div>
 
               {/* Show error if any */}
-              {error && (
+              {localError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
-                  {error}
+                  {localError}
                 </div>
               )}
 
@@ -130,7 +141,9 @@ const LoginPage = () => {
           </CardFooter>
         </Card>
       </div>
-      <NavigationDialog open={isDialogOpen} />
+
+      {/* Only show NavigationDialog if login is successful */}
+      {isDialogOpen && <NavigationDialog open={isDialogOpen} />}
     </div>
   )
 }

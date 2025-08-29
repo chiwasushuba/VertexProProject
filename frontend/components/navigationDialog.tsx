@@ -1,8 +1,11 @@
-// NavigationDialog.tsx
+'use client'
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { MonitorPlay, Camera } from "lucide-react" // icons for better visuals
+import { MonitorPlay, Camera } from "lucide-react"
+import { useAuthContext } from "@/hooks/useAuthContext"
+import { useEffect, useState } from "react"
 
 interface NavigationDialogProps {
   open: boolean
@@ -10,6 +13,13 @@ interface NavigationDialogProps {
 
 const NavigationDialog = ({ open }: NavigationDialogProps) => {
   const router = useRouter()
+  const { userInfo } = useAuthContext()
+  const [disabled, setDisabled] = useState(false)
+
+  // Update disabled state when userInfo changes
+  useEffect(() => {
+    setDisabled(userInfo?.user?.verified === false) // disabled if userInfo is null/undefined
+  }, [userInfo])
 
   const handleWatchVideo = () => {
     router.push("/watch")
@@ -42,6 +52,7 @@ const NavigationDialog = ({ open }: NavigationDialogProps) => {
             variant="outline"
             className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-50"
             onClick={handleTimestamp}
+            disabled={disabled}
           >
             <Camera className="w-6 h-6" />
             <span className="text-sm font-medium text-center">

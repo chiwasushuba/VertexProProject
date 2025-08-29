@@ -500,47 +500,24 @@ export default function ProfilePage() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="flex justify-between items-center">
-                {isOwnProfile && (
-                  <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" className="gap-2">
-                    <Trash2 className="h-4 w-4" />
-                    Delete Profile
-                  </Button>
-                )}
-
-                {!isOwnProfile && (
-                  <div className="flex justify-end gap-4 w-full">
-                    {user.role === "admin" || user.role === "superAdmin" ? (
-                      <>
-                        <Button
-                          onClick={() => console.log("Send Store Intro Letter")}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Send Store Intro Letter
-                        </Button>
-                        <Button
-                          onClick={() => console.log("Send Company ID")}
-                          className="bg-purple-600 hover:bg-purple-700"
-                        >
-                          Send Company ID
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          onClick={() => console.log("Request Store Intro Letter")}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Request Store Intro Letter
-                        </Button>
-                        <Button
-                          onClick={() => console.log("Request Company ID")}
-                          className="bg-indigo-600 hover:bg-indigo-700"
-                        >
-                          Request Company ID
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                {isOwnProfile ? (
+                  <>
+                    <Button
+                      onClick={() => console.log("Request Store Intro Letter")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Request Store Intro Letter
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => console.log("Request Store Intro Letter")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Send Store Intro Letter
+                    </Button>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -563,36 +540,7 @@ export default function ProfilePage() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent className="max-w-md">
-            <DialogTitle className="text-lg font-semibold text-red-600">Delete Profile</DialogTitle>
-            <div className="space-y-4">
-              <p className="text-gray-600">
-                Are you sure you want to delete your profile? This action cannot be undone and will permanently remove
-                all your data.
-              </p>
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={handleDeleteProfile} disabled={isDeleting} className="gap-2">
-                  {isDeleting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      Delete Profile
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        
       </div>
     </RouteGuard>
   )
