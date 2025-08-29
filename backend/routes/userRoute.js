@@ -44,7 +44,7 @@ router.get('/role/admin', getAllAdminRole);
 router.get('/:id', getUser);
 
 // Update user
-router.put('/:id', updateUser);
+router.patch('/:id', updateUser);
 router.patch('/verify/:id', verifyUser);
 router.patch('/unverify/:id', unverifyUser);
 router.patch('/changerole/:id', changeUserRole);
