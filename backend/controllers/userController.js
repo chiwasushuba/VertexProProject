@@ -260,18 +260,28 @@ const unverifyUser = async (req, res) => {
     }
 };
 
+// Change User Role
 const changeUserRole = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { role } = req.body;
-        const user = await User.findByIdAndUpdate(id, { role }, { new: true });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json({ message: 'User role updated successfully', user });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!["user", "admin", "superAdmin"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
     }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update role" });
+  }
 };
 
 const changeUserRequest = async (req, res) => {
