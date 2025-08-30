@@ -34,17 +34,97 @@ const getUser = async (req, res) => {
 
 // Update a user by ID
 const updateUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const user = await User.findByIdAndUpdate(id, req.body, { new: true });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+  try {
+    const { id } = req.params;
+
+    if (req.fileValidationError) {
+      return res.status(400).json({ error: req.fileValidationError });
     }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const uploadedFiles = {};
+    const fileFields = ["profileImage", "nbiClearance", "fitToWork"];
+
+    const uploadToFirebase = (file, folder) => {
+      return new Promise((resolve, reject) => {
+        const fileName = `${folder}${Date.now()}-${file.originalname}`;
+        const blob = bucket.file(fileName);
+
+        const blobStream = blob.createWriteStream({
+          metadata: { contentType: file.mimetype },
+        });
+
+        blobStream.on("error", reject);
+        blobStream.on("finish", async () => {
+          try {
+            await blob.makePublic();
+            resolve(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        blobStream.end(file.buffer);
+      });
+    };
+
+    const userFolder = `users/${user.email}/required/`;
+
+    // Upload new files if provided
+    for (const field of fileFields) {
+      if (req.files?.[field]?.[0]) {
+        uploadedFiles[field] = await uploadToFirebase(req.files[field][0], userFolder);
+      }
+    }
+
+    // Update user fields
+    const {
+      firstName,
+      lastName,
+      middleName,
+      gender,
+      position,
+      completeAddress,
+      nbiRegistrationDate,
+      nbiExpirationDate,
+      fitToWorkExpirationDate,
+      gcashNumber,
+      gcashName,
+      role,
+    } = req.body;
+
+    if (gcashNumber && isNaN(Number(gcashNumber))) {
+      return res.status(400).json({ error: "Gcash number must be a valid number" });
+    }
+
+    const updatedData = {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(middleName && { middleName }),
+      ...(gender && { gender }),
+      ...(position && { position }),
+      ...(completeAddress && { completeAddress }),
+      ...(nbiRegistrationDate && { nbiRegistrationDate }),
+      ...(nbiExpirationDate && { nbiExpirationDate }),
+      ...(fitToWorkExpirationDate && { fitToWorkExpirationDate }),
+      ...(gcashNumber && { gcashNumber }),
+      ...(gcashName && { gcashName }),
+      ...(role && { role }),
+      ...uploadedFiles, // Add new uploaded files
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(id, updatedData, { new: true });
+
+    res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
 };
+
 
 // Delete a user by ID
 const deleteUser = async (req, res) => {

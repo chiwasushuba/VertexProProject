@@ -46,7 +46,17 @@ router.get('/:id', getUser);
 
 // Update user
 
-router.patch('/:id', updateUser);
+router.patch(
+  '/:id',
+  upload.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "nbiClearance", maxCount: 1 },
+    { name: "fitToWork", maxCount: 1 },
+  ]),
+  updateUser
+)
+
+
 router.patch('/verify/:id', verifyUser);
 router.patch('/unverify/:id', unverifyUser);
 router.patch('/changerole/:id', changeUserRole);

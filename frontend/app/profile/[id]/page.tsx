@@ -31,6 +31,7 @@ import {
 import type { UserProfile } from "@/types/userProfileType"
 import { useAuthContext } from "@/hooks/useAuthContext"
 import TemplateDialog from "@/components/templateDialog"
+import EditProfileDialog from "@/components/editProfileDialog"
 
 interface InfoItemProps {
   icon: any
@@ -115,6 +116,7 @@ export default function ProfilePage() {
   const [photos, setPhotos] = useState<string[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [tempDialogOpen, setTempDialogOpen] = useState(false)
+  const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -267,6 +269,10 @@ export default function ProfilePage() {
 
   const handlePhotoClick = (photo: string) => {
     setSelectedPhoto(photo)
+  }
+
+  const handleEditProfile = () => {
+    setEditProfileDialogOpen(true)
   }
 
   // Prepare dialog props
@@ -503,9 +509,14 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="flex justify-between items-center">
                 {isOwnProfile ? (
-                  <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
-                    Request Store Intro Letter
-                  </Button>
+                  <div className="flex gap-5">
+                    <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
+                      Request Store Intro Letter
+                    </Button>
+                    <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700">
+                      Edit Profile
+                    </Button>
+                  </div>
                 ) : (
                   <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
                     Send Store Intro Letter
@@ -541,6 +552,12 @@ export default function ProfilePage() {
           email={email}
           open={tempDialogOpen}
           setOpen={setTempDialogOpen}
+        />
+
+        <EditProfileDialog 
+          _id={user._id} 
+          open={editProfileDialogOpen} 
+          setOpen={setEditProfileDialogOpen} 
         />
       </div>
     </RouteGuard>
