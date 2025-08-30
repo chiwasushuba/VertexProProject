@@ -522,20 +522,48 @@ export default function ProfilePage() {
               <CardContent className="flex justify-between items-center">
                 {isOwnProfile ? (
                   <div className="flex gap-5">
-                    <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
-                      Request Store Intro Letter
-                    </Button>
+                    {/* Only show Request Letter if not admin/superAdmin */}
+                    {!(userInfo?.user?.role === "admin" || userInfo?.user?.role === "superAdmin") && (
+                      <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
+                        Request Store Intro Letter
+                      </Button>
+                    )}
                     <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700">
                       Edit Profile
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
-                    Send Store Intro Letter
-                  </Button>
+                  <>
+                    {/* If the viewer is admin/superAdmin */}
+                    {(userInfo?.user?.role === "admin" || userInfo?.user?.role === "superAdmin") ? (
+                      <>
+                        {/* Hide all buttons if admin is viewing a superAdmin */}
+                        {!(userInfo?.user?.role === "admin" && user.role === "superAdmin") && (
+                          <div className="flex gap-5">
+                            <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700">
+                              Edit Profile
+                            </Button>
+
+                            {/* Admins & superAdmins can also send intro letters to users */}
+                            {user.role === "user" && (
+                              <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
+                                Send Store Intro Letter
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      // Normal users sending store intro letter
+                      <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
+                        Send Store Intro Letter
+                      </Button>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
+
           </div>
         </div>
 

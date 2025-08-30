@@ -30,7 +30,7 @@ const Page = () => {
         const resUser = await api.get("/user/role/user")
 
         const normalizedAdmins: UserType[] = resAdmin.data.map((user: any) => ({
-          id: user._id,  // Always use _id here
+          id: user._id,
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           pfp: user.profileImage || user.pfp,
@@ -61,6 +61,10 @@ const Page = () => {
       fetchAdmins()
     }
   }, [userInfo])
+
+  const handleOpenProfile = (id: string) => {
+    router.push(`/profile/${id}`)
+  }
 
   const handleVerify = async (id: string) => {
     try {
@@ -116,13 +120,16 @@ const Page = () => {
     try {
       await api.patch(`/user/changerole/${id}`, { role: newRole });
 
-      // update both states
+      // Optionally still update local state
       setUsers(prev =>
         prev.map(user => (user.id === id ? { ...user, role: newRole } : user))
       );
       setAdmins(prev =>
         prev.map(admin => (admin.id === id ? { ...admin, role: newRole } : admin))
       );
+
+      // Force page reload to reflect role change globally
+      window.location.reload();
     } catch (err) {
       console.error("Failed to change role:", err);
     }
@@ -161,6 +168,7 @@ const Page = () => {
                   onChangeRole={handleChangeRole}
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
+                  onClick={() => handleOpenProfile(admin.id)}
                 />
               ))}
             </div>
@@ -182,6 +190,7 @@ const Page = () => {
                   onChangeRole={handleChangeRole}
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
+                  onClick={() => handleOpenProfile(user.id)}
                 />
               ))}
             </div>
