@@ -120,12 +120,16 @@ const Page = () => {
     try {
       await api.patch(`/user/changerole/${id}`, { role: newRole });
 
+      // Optionally still update local state
       setUsers(prev =>
         prev.map(user => (user.id === id ? { ...user, role: newRole } : user))
       );
       setAdmins(prev =>
         prev.map(admin => (admin.id === id ? { ...admin, role: newRole } : admin))
       );
+
+      // Force page reload to reflect role change globally
+      window.location.reload();
     } catch (err) {
       console.error("Failed to change role:", err);
     }
