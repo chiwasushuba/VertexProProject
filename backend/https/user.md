@@ -6,6 +6,7 @@ GET /user/
 GET /user/:id
 
 
+POST /user/signup
 params:
   - email: String, email used
   - password: String,
@@ -24,20 +25,21 @@ params:
 
 POST /user/
 {
-  "email": "john.doe@example.com",
+  "email": "test.user@example.com",
   "password": "securepassword123",
   "role": "user",
-  "firstName": "John",
-  "lastName": "Doe",
+  "firstName": "Test",
+  "lastName": "user",
   "middleName": "",
   "gender": "Male",
   "position": "Coordinator",
   "completeAddress": "123 Street, City",
+  "nbiRegistrationDate": "2023-10-01",
   "nbiExpirationDate": "2025-09-01",
   "fitToWorkExpirationDate": "2025-10-01",
   "gcashNumber": 9123456789,
-  "gcashName": "John Doe",
-  "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s"
+  "gcashName": "Test user",
+  "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqT1nFXt_nZYKVIx4coe2GFqo1lNqcM5OpRw&s" //FILE
 }
 
 

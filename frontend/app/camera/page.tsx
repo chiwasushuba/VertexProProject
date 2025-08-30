@@ -2,6 +2,7 @@
 
 import { set } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
+import { RouteGuard } from '../RouteGuard';
 
 export default function CapturePage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -104,10 +105,26 @@ export default function CapturePage() {
 
     const imageData = canvas.toDataURL('image/jpeg');
     setCapturedImage(imageData);
-    setTimestamp(new Date().toLocaleString());
+
+    // Always format timestamp in Philippine Time (Asia/Manila)
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Manila"
+    };
+
+    const phtTime = new Intl.DateTimeFormat("en-PH", options).format(new Date());
+    setTimestamp(phtTime);
   };
 
+
   return (
+    <RouteGuard>
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 p-4">
       <div className='flex flex-col items-center'>
         <h1 className="text-2xl font-semibold mb-4">Take a Picture</h1>
@@ -135,6 +152,7 @@ export default function CapturePage() {
       {capturedImage && (
         <div className="flex flex-col justify-center mt-6 text-justify w-auto">
           <img src={capturedImage} alt="Captured" className="rounded-lg shadow mb-4 max-w-xs" />
+          <span className='text-sm'><strong>Take a screenshot of this then upload it in your profile</strong></span>
           <span className='flex'>
             <strong>Time:&nbsp; </strong> {timestamp}
           </span>
@@ -150,5 +168,6 @@ export default function CapturePage() {
         </div>
       )}
     </div>
+    </RouteGuard>
   );
 }

@@ -6,8 +6,51 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import { useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useLogin } from '@/hooks/useLogin'
+import NavigationDialog from "@/components/navigationDialog"
 
 const LoginPage = () => {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
+
+  const { login} = useLogin()
+  const router = useRouter()
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setLocalError(null)
+
+    try {
+      const res = await login(email, password)
+
+      if (!res?.success) {
+        setLocalError(res.error || "Login failed")
+        return
+      }
+
+      // Clear fields
+      setEmail("")
+      setPassword("")
+
+      // Show dialog only if login is successful
+      setIsDialogOpen(true)
+
+    } catch (err: any) {
+      console.error("Error logging in:", err)
+      setLocalError(err.message || "Login failed")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       <Header variant="default" location="Login" />
@@ -15,31 +58,51 @@ const LoginPage = () => {
         <Card className="max-w-md w-[90%] p-6 md:p-8">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Login</CardTitle>
-            <CardDescription className="">
+            <CardDescription>
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="grid gap-6">
+            <form onSubmit={handleLogin} className="grid gap-6">
+              {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   placeholder="your@email.com"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              {/* Password with toggle */}
+              <div className="relative">
+                <Label>Password</Label>
                 <Input
-                  id="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="pr-10"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-2 flex items-center px-2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff className="mt-3" size={20} /> : <Eye className="mt-3" size={20} />}
+                </button>
               </div>
+
+              {/* Show error if any */}
+              {localError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
+                  {localError}
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -58,19 +121,29 @@ const LoginPage = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Login
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Logging in..." : "Login"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="justify-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link href="/signup" className="ml-1 text-primary underline underline-offset-2">
+            <Link
+              href="/signup"
+              className="ml-1 text-primary underline underline-offset-2"
+            >
               Sign up
             </Link>
           </CardFooter>
         </Card>
       </div>
+
+      {/* Only show NavigationDialog if login is successful */}
+      {isDialogOpen && <NavigationDialog open={isDialogOpen} />}
     </div>
   )
 }

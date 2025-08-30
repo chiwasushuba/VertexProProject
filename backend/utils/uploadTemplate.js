@@ -6,10 +6,10 @@ const storage = multer.memoryStorage();
 
 // File filter to allow only specific image types no videos allowed baka di kayanin ng cloud storage ko
 const fileFilter = (req, file, callback) => {
-    const allowedTypes = /\.(jpg|jpeg|png|gif)$/i;
+    const allowedTypes = /\.(pdf|docx)$/i;
     
     if (!file.originalname.match(allowedTypes)) {
-        req.fileValidationError = 'Only image files (JPG, JPEG, PNG, GIF) are allowed!';
+        req.fileValidationError = 'Only these files (PDF and DOCX) are allowed!';
         return callback(null, false);
     }
 

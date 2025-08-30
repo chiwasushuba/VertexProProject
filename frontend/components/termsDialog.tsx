@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -8,48 +7,44 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useRouter } from "next/navigation"
 import { Label } from "@radix-ui/react-label"
+import { useRouter } from "next/navigation"
+import { useAuthContext } from "@/hooks/useAuthContext"
 
-export function TermsDialog() {
-  const [open, setOpen] = useState(true)
-  const [agreed, setAgreed] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+interface TermsDialogProps {
+  name: string
+  agreed: boolean
+  open: boolean
+  setOpen: (open: boolean) => void
+}
+
+export function TermsDialog({ name, agreed, open, setOpen }: TermsDialogProps) {
   const router = useRouter()
+  const { userInfo } = useAuthContext()
 
-  const handleVideoEnd = () => {
-    // Show the checkbox and button after video ends
-  }
-
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // close dialog & navigate
     setOpen(false)
-    router.push("/") // Replace with your actual next page route
+    router.push(`/profile/${userInfo.user._id}`)
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>Terms and Conditions</DialogTitle>
+          <DialogTitle>
+            I accept and agree to follow the rules in the video
+          </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* Terms Agreement Checkbox - Initially hidden, shown after video */}
-          <div className="flex items-center space-x-2 pt-4">
-            <Checkbox 
-              id="terms" 
-              checked={agreed}
-              onCheckedChange={(checked) => setAgreed(!!checked)}
-            />
-            <Label htmlFor="terms">
-              I UNDERSTAND THE VIDEO PRESENTED AND WILL FOLLOW THE RULES
-            </Label>
-          </div>
 
-          {/* Continue Button - Disabled until checkbox is checked */}
-          <Button 
-            className="w-full mt-4" 
+        <div className="flex flex-col space-y-4 justify-center">
+          <div><Label className="text-gray-600 text-center text-sm">Note: You need to send a screenshot of this to your supervisor in order to prove that you watched the video</Label></div>
+          <div className="flex justify-between">
+            <Label>Name: {`${userInfo?.user?.firstName} ${userInfo?.user?.middleName ? userInfo?.user?.middleName + " " : ""}${userInfo?.user?.lastName}`}</Label>
+            <Label>Date/Time: {new Date().toLocaleString()}</Label>
+          </div>
+          <Button
+            className="w-full mt-4"
             disabled={!agreed}
             onClick={handleContinue}
           >
