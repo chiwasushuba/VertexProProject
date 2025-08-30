@@ -152,6 +152,7 @@ export default function CapturePage() {
       {capturedImage && (
         <div className="flex flex-col justify-center mt-6 text-justify w-auto">
           <img src={capturedImage} alt="Captured" className="rounded-lg shadow mb-4 max-w-xs" />
+          <span className='text-sm'><strong>Take a screenshot of this then upload it in your profile</strong></span>
           <span className='flex'>
             <strong>Time:&nbsp; </strong> {timestamp}
           </span>

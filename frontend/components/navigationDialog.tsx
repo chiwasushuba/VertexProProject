@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { MonitorPlay, Camera } from "lucide-react"
+import { MonitorPlay, Camera, Shield } from "lucide-react"
 import { useAuthContext } from "@/hooks/useAuthContext"
 import { useEffect, useState } from "react"
 
@@ -16,22 +16,20 @@ const NavigationDialog = ({ open }: NavigationDialogProps) => {
   const { userInfo } = useAuthContext()
   const [disabled, setDisabled] = useState(false)
 
-  // Update disabled state when userInfo changes
+  // Disable timestamp if user is not verified
   useEffect(() => {
-    setDisabled(userInfo?.user?.verified === false) // disabled if userInfo is null/undefined
+    setDisabled(userInfo?.user?.verified === false)
   }, [userInfo])
 
-  const handleWatchVideo = () => {
-    router.push("/watch")
-  }
+  const handleWatchVideo = () => router.push("/watch")
+  const handleTimestamp = () => router.push("/camera")
+  const handleAdmin = () => router.push("/admin")
 
-  const handleTimestamp = () => {
-    router.push("/camera")
-  }
+  const isAdmin = userInfo?.user?.role === "admin" || userInfo?.user?.role === "superAdmin"
 
   return (
     <Dialog open={open}>
-      <DialogContent className="max-w-md rounded-2xl shadow-xl">
+      <DialogContent className="max-w-md rounded-2xl shadow-xl p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
             Navigation
@@ -39,18 +37,20 @@ const NavigationDialog = ({ open }: NavigationDialogProps) => {
         </DialogHeader>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          {/* Watch Video */}
           <Button
             variant="outline"
-            className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-50"
+            className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-100 transition"
             onClick={handleWatchVideo}
           >
             <MonitorPlay className="w-6 h-6" />
             <span className="text-sm font-medium">Go to Watch</span>
           </Button>
 
+          {/* Timestamp Camera */}
           <Button
             variant="outline"
-            className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-50"
+            className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-100 transition disabled:opacity-50"
             onClick={handleTimestamp}
             disabled={disabled}
           >
@@ -59,6 +59,18 @@ const NavigationDialog = ({ open }: NavigationDialogProps) => {
               Timestamp Camera
             </span>
           </Button>
+
+          {/* Admin Panel (only if admin/superAdmin) */}
+          {isAdmin && (
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 gap-2 rounded-xl border border-gray-200 hover:bg-gray-100 transition sm:col-span-2"
+              onClick={handleAdmin}
+            >
+              <Shield className="w-6 h-6" />
+              <span className="text-sm font-medium">Admin Dashboard</span>
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

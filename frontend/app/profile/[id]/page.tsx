@@ -1,4 +1,6 @@
+// app/(your-route)/ProfilePage.tsx
 "use client"
+
 import { useEffect, useState } from "react"
 import type React from "react"
 
@@ -13,7 +15,6 @@ import type { AxiosError } from "axios"
 import Header from "@/components/header"
 import { RouteGuard } from "@/app/RouteGuard"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
   Calendar,
   CreditCard,
@@ -26,7 +27,6 @@ import {
   MapPin,
   Mail,
   Trash2,
-  Plus,
 } from "lucide-react"
 import type { UserProfile } from "@/types/userProfileType"
 import { useAuthContext } from "@/hooks/useAuthContext"
@@ -51,56 +51,85 @@ function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
   )
 }
 
-interface PhotoPreviewProps {
-  src: string
-  alt: string
+interface PhotoObj {
+  url: string
+  timestampId: string
 }
 
-function PhotoPreview({ src, alt }: PhotoPreviewProps) {
-  const [open, setOpen] = useState(false)
+/* Mobile-friendly PhotoPreview component (integrates preview + delete) */
+interface PhotoPreviewProps {
+  photo: PhotoObj
+  onDelete: (index: number, photo: PhotoObj) => Promise<void> | void
+  isOwnProfile: boolean
+  index: number
+}
 
-  if (!src) {
-    return (
-      <div className="flex items-center justify-center h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
-        <div className="text-center">
-          <FileText className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-          <p className="text-sm text-gray-500">No {alt} uploaded</p>
-        </div>
-      </div>
-    )
+function PhotoPreview({
+  photo,
+  onDelete,
+  isOwnProfile,
+  index,
+}: PhotoPreviewProps) {
+  const [open, setOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this photo? This cannot be undone.")) return
+    try {
+      setDeleting(true)
+      await onDelete(index, photo)
+      setOpen(false)
+    } catch (err) {
+      // onDelete shows alert/logs; keep UI state consistent
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
     <>
       <div className="relative group cursor-pointer" onClick={() => setOpen(true)}>
         <img
-          src={src || "/placeholder.svg"}
-          alt={alt}
+          src={photo.url || "/placeholder.svg"}
+          alt={`Photo`}
           className="w-full h-32 object-cover rounded-lg border shadow-sm group-hover:shadow-md transition-shadow"
         />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="bg-white/90 rounded-full p-2">
-              <FileText className="h-4 w-4 text-gray-700" />
-            </div>
-          </div>
-        </div>
+
+        {/* Desktop quick delete button */}
+        {isOwnProfile && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              if (!confirm("Delete this photo?")) return
+              void onDelete(index, photo)
+            }}
+            className="absolute top-2 right-2 h-7 w-7 p-0 rounded-full bg-white/90 flex items-center justify-center shadow z-10"
+            aria-label="Delete photo"
+            type="button"
+          >
+            <Trash2 className="h-4 w-4 text-red-600" />
+          </button>
+        )}
       </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl p-0">
-          <DialogTitle>
-            <VisuallyHidden>{alt} Preview</VisuallyHidden>
-          </DialogTitle>
-          <img src={src || "/placeholder.svg"} alt={alt} className="w-full h-auto rounded-lg" />
+        <DialogContent className="max-w-4xl max-h-[90vh] p-4">
+          <DialogTitle className="sr-only">Photo Preview</DialogTitle>
+          <div className="flex flex-col items-center gap-4">
+            <img src={photo.url || "/placeholder.svg"} alt={`Photo`} className="max-w-full max-h-[70vh] object-contain rounded-lg" />
+            {isOwnProfile && (
+              <div className="w-full flex justify-center">
+                <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="w-full sm:w-auto">
+                  {deleting ? "Deleting..." : "Delete Photo"}
+                </Button>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
   )
 }
-
-/* -------------------------
-   TemplateDialog component
-   ------------------------- */
 
 /* -------------------------
    ProfilePage (main export)
@@ -111,9 +140,9 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [photos, setPhotos] = useState<string[]>([])
+  // changed: photos are objects carrying timestampId
+  const [photos, setPhotos] = useState<PhotoObj[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [tempDialogOpen, setTempDialogOpen] = useState(false)
   const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false)
@@ -136,15 +165,17 @@ export default function ProfilePage() {
     fetchUser()
   }, [id])
 
-  // Fetch photos when user changes
+  // Fetch photos when user changes — keep timestampId for deletes
   useEffect(() => {
     if (!user?._id) return
 
     const fetchPhotos = async () => {
       try {
         const res = await api.get(`/timestamp/user/${user._id}`)
-        // Flatten all pictures
-        const allPhotos = res.data.flatMap((item: any) => item.pictures)
+        // res.data is an array of timestamp docs: { _id, pictures: [...] }
+        const allPhotos: PhotoObj[] = res.data.flatMap((item: any) =>
+          (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id }))
+        )
         setPhotos(allPhotos)
       } catch (err) {
         console.error("Failed to fetch photos:", err)
@@ -218,20 +249,36 @@ export default function ProfilePage() {
     }
   }
 
-  const handleDeletePhoto = async (index: number, photoUrl: string) => {
+  // Optimistic delete with auth header, reverts on failure
+  const handleDeletePhoto = async (index: number, photo: PhotoObj) => {
     if (!isOwnProfile) return
 
+    const previous = photos.slice()
+    // optimistic remove
+    const updated = photos.filter((_, i) => i !== index)
+    setPhotos(updated)
+
     try {
-      await api.delete(`/user/${user?._id}/photos`, {
-        data: { photoUrl },
+      const headers: Record<string, string> = {}
+      if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`
+
+      // Call your backend deleteSingleImage: DELETE /timestamp/:id/image
+      await api.delete(`/timestamp/${photo.timestampId}/image`, {
+        headers,
+        data: { imageUrl: photo.url },
       })
-      setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index))
+
+      // success — UI already updated
     } catch (err) {
+      // revert
+      setPhotos(previous)
       const error = err as AxiosError<{ message?: string }>
-      console.error("Failed to delete photo:", error.response?.data?.message || "Unknown error")
-      alert("Failed to delete photo. Please try again.")
+      console.error("Failed to delete photo:", error?.response?.data?.message || err)
+      alert(error?.response?.data?.message || "Failed to delete photo. Please try again.")
+      throw err
     }
   }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0])
@@ -247,28 +294,27 @@ export default function ProfilePage() {
       const formData = new FormData()
       formData.append("picture", file)
 
+      const headers: Record<string, string> = {}
+      if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`
+
       await api.post(`/timestamp`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${userInfo.token}`, // ✅ add token here
-        },
+        headers, // axios sets the correct Content-Type with boundary
       })
 
       // Refetch photos after upload
       const res = await api.get(`/timestamp/user/${user._id}`)
-      const allPhotos = res.data.flatMap((item: any) => item.pictures)
+      const allPhotos: PhotoObj[] = res.data.flatMap((item: any) =>
+        (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id }))
+      )
       setPhotos(allPhotos)
 
       setFile(null)
     } catch (err) {
       console.error("Upload failed:", err)
+      alert("Upload failed. Please try again.")
     } finally {
       setIsUploading(false)
     }
-  }
-
-  const handlePhotoClick = (photo: string) => {
-    setSelectedPhoto(photo)
   }
 
   const handleEditProfile = () => {
@@ -278,10 +324,9 @@ export default function ProfilePage() {
   // Prepare dialog props
   const fullName = `${user.firstName} ${user.middleName ? user.middleName + " " : ""}${user.lastName}`
   const role = user.position || user.role || ""
-  const startTime = (user as any).startTime || "" // adjust if you store shift times
+  const startTime = (user as any).startTime || ""
   const endTime = (user as any).endTime || ""
   const email = user.email || ""
-  const token = userInfo?.token || null
 
   return (
     <RouteGuard>
@@ -332,37 +377,17 @@ export default function ProfilePage() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {photos.map((photo, index) => (
-                    <div key={index} className="relative group aspect-square">
-                      <div className="w-full h-full cursor-pointer" onClick={() => handlePhotoClick(photo)}>
-                        <img
-                          src={photo || "/placeholder.svg"}
-                          alt={`Photo ${index + 1}`}
-                          className="w-full h-full object-cover rounded-lg border shadow-sm group-hover:shadow-md transition-shadow"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="bg-white/90 rounded-full p-2">
-                              <Camera className="h-4 w-4 text-gray-700" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {isOwnProfile && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeletePhoto(index, photo)
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
+                    <div key={`${photo.timestampId}-${index}`} className="aspect-square">
+                      <PhotoPreview
+                        photo={photo}
+                        index={index}
+                        isOwnProfile={isOwnProfile}
+                        onDelete={handleDeletePhoto}
+                      />
                     </div>
                   ))}
-                  {!isOwnProfile && (!photos || photos.length === 0) && (
+
+                  {(!photos || photos.length === 0) && (
                     <div className="col-span-full flex items-center justify-center h-40 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
                       <div className="text-center">
                         <Camera className="mx-auto h-8 w-8 text-gray-400 mb-2" />
@@ -371,20 +396,13 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
+
                 <Separator className="my-4" />
                 <div className="w-full">
                   {/* Upload form only for own profile */}
                   {isOwnProfile && (
-                    <form
-                      onSubmit={handleFileSubmit}
-                      className="mb-6 flex flex-col sm:flex-row sm:items-center gap-2 w-full"
-                    >
-                      <input
-                        className="border p-2 rounded w-full sm:w-auto"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                      />
+                    <form onSubmit={handleFileSubmit} className="mb-6 flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+                      <input className="border p-2 rounded w-full sm:w-auto" type="file" accept="image/*" onChange={handleFileChange} />
                       <Button type="submit" disabled={isUploading} className="w-full sm:w-auto">
                         {isUploading ? "Uploading..." : "Upload"}
                       </Button>
@@ -426,7 +444,9 @@ export default function ProfilePage() {
                     <h3 className="font-semibold">NBI Clearance</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PhotoPreview src={user.nbiClearance} alt="NBI Clearance" />
+                    <div>
+                      <img src={user.nbiClearance || "/placeholder.svg"} alt="NBI" className="w-full h-32 object-cover rounded-lg border" />
+                    </div>
                     <div className="space-y-2">
                       <InfoItem
                         icon={Calendar}
@@ -451,14 +471,14 @@ export default function ProfilePage() {
                     <h3 className="font-semibold">Medical Clearance</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PhotoPreview src={user.fitToWork} alt="Medical Clearance" />
+                    <div>
+                      <img src={user.fitToWork || "/placeholder.svg"} alt="Fit to work" className="w-full h-32 object-cover rounded-lg border" />
+                    </div>
                     <div>
                       <InfoItem
                         icon={Calendar}
                         label="Expiration Date"
-                        value={
-                          user.fitToWorkExpirationDate ? new Date(user.fitToWorkExpirationDate).toLocaleDateString() : ""
-                        }
+                        value={user.fitToWorkExpirationDate ? new Date(user.fitToWorkExpirationDate).toLocaleDateString() : ""}
                       />
                     </div>
                   </div>
@@ -489,16 +509,8 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <InfoItem
-                  icon={Calendar}
-                  label="Created"
-                  value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ""}
-                />
-                <InfoItem
-                  icon={Calendar}
-                  label="Last Updated"
-                  value={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : ""}
-                />
+                <InfoItem icon={Calendar} label="Created" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ""} />
+                <InfoItem icon={Calendar} label="Last Updated" value={user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : ""} />
               </CardContent>
             </Card>
 
@@ -527,38 +539,11 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Photo Preview Dialog */}
-        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] p-2">
-            <DialogTitle className="sr-only">Photo Preview</DialogTitle>
-            {selectedPhoto && (
-              <div className="flex items-center justify-center">
-                <img
-                  src={selectedPhoto || "/placeholder.svg"}
-                  alt="Photo preview"
-                  className="max-w-full max-h-[80vh] object-contain rounded-lg"
-                />
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
         {/* Template Dialog */}
-        <TemplateDialog
-          name={fullName}
-          role={role}
-          startTime={startTime}
-          endTime={endTime}
-          email={email}
-          open={tempDialogOpen}
-          setOpen={setTempDialogOpen}
-        />
+        <TemplateDialog name={fullName} role={role} startTime={startTime} endTime={endTime} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} />
 
-        <EditProfileDialog 
-          _id={user._id} 
-          open={editProfileDialogOpen} 
-          setOpen={setEditProfileDialogOpen} 
-        />
+        {/* Edit Profile Dialog */}
+        <EditProfileDialog _id={user._id} open={editProfileDialogOpen} setOpen={setEditProfileDialogOpen} />
       </div>
     </RouteGuard>
   )
