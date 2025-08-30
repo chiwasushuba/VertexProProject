@@ -1,18 +1,20 @@
-import React from 'react';
-import { UserType } from '@/types/userType';
-import { Card, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
+import React from 'react'
+import { UserType } from '@/types/userType'
+import { Card, CardTitle } from './ui/card'
+import { Button } from './ui/button'
+import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select'
+import { useRouter } from 'next/navigation'
 
 type Props = UserType & {
-  onVerify: (id: string) => void;
-  onUnverify: (id: string) => void;
-  onDelete: (id: string) => void;
-  onChangeRole: (id: string, newRole: "user" | "admin" | "superAdmin") => void;
-  currentUserRole: "user" | "admin" | "superAdmin";
-  currentUserId: string;
-};
+  onVerify: (id: string) => void
+  onUnverify: (id: string) => void
+  onDelete: (id: string) => void
+  onChangeRole: (id: string, newRole: "user" | "admin" | "superAdmin") => void
+  currentUserRole: "user" | "admin" | "superAdmin"
+  currentUserId: string
+  onClick?: () => void   // optional click handler
+}
 
 const UserCard = ({ 
   id, 
@@ -26,19 +28,34 @@ const UserCard = ({
   onDelete, 
   onChangeRole,
   currentUserRole, 
-  currentUserId 
+  currentUserId,
+  onClick
 }: Props) => {
-  const isSelf = id === currentUserId;
-  const isSuperAdmin = currentUserRole === "superAdmin";
-  const targetIsSuperAdmin = role === "superAdmin";
+  const router = useRouter()
+  const isSelf = id === currentUserId
+  const isSuperAdmin = currentUserRole === "superAdmin"
+  const targetIsSuperAdmin = role === "superAdmin"
+
+  const handleNavigate = () => {
+    if (onClick) {
+      onClick() // use external click handler if passed
+    } else {
+      router.push(`/profile/${id}`) // fallback to default navigation
+    }
+  }
 
   return (
-    <Card className="w-full bg-white shadow-lg rounded-lg p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <Card 
+      className="w-full bg-white shadow-lg rounded-lg p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 cursor-pointer hover:shadow-xl transition"
+      onClick={handleNavigate}
+    >
       {/* User Info */}
       <div className='flex items-center gap-4'>
         <Avatar className='w-16 h-16 rounded-full'>
           <AvatarImage className='rounded-full' src={pfp} />
-          <AvatarFallback className='rounded-full'>CN</AvatarFallback>
+          <AvatarFallback className='rounded-full'>
+            {name ? name[0] : "?"}
+          </AvatarFallback>
         </Avatar>
         <div>
           <CardTitle className="text-[1.5rem] font-bold text-gray-800">
@@ -50,11 +67,12 @@ const UserCard = ({
 
       {/* Action Buttons */}
       {!isSelf && (
-        <div className="flex flex-wrap gap-2 items-center">
-          {/* If target is superAdmin, only superAdmins see controls */}
+        <div 
+          className="flex flex-wrap gap-2 items-center"
+          onClick={(e) => e.stopPropagation()} // prevent triggering navigation
+        >
           {!targetIsSuperAdmin || isSuperAdmin ? (
             <>
-              {/* Verify / Unverify */}
               {verified ? (
                 <Button
                   className="bg-red-400 hover:bg-red-500"
@@ -71,7 +89,6 @@ const UserCard = ({
                 </Button>
               )}
 
-              {/* Change Role - only visible to superAdmins */}
               {isSuperAdmin && (
                 <Select
                   value={role}
@@ -88,7 +105,6 @@ const UserCard = ({
                 </Select>
               )}
 
-              {/* Delete - only superAdmins can delete */}
               {isSuperAdmin && (
                 <Button 
                   className="bg-red-600 hover:bg-red-700" 
@@ -102,7 +118,7 @@ const UserCard = ({
         </div>
       )}
     </Card>
-  );
-};
+  )
+}
 
-export default UserCard;
+export default UserCard
