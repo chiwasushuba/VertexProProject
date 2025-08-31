@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { RouteGuard } from '../RouteGuard';
+import api from '@/utils/axios';
 
 export default function CapturePage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -114,8 +115,8 @@ export default function CapturePage() {
 
     try {
       // ✅ Call your backend
-      const res = await fetch("http://localhost:4000/api/user/time");
-      const data = await res.json();
+      const res = await api.get("/user/time");
+      const data = res.data;
 
       // ✅ Parse UTC string from backend
       const utcDate = new Date(data.utc);
