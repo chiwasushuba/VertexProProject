@@ -3,6 +3,8 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const { bucket } = require('../utils/firebase'); // firebase bucket
+const bcrypt = require("bcrypt");
+
 
 const createToken = (_id) => {
   return jwt.sign({_id}, process.env.SECRET, { expiresIn: '5d'})
@@ -384,6 +386,32 @@ const changeUserRequest = async (req, res) => {
     }
 };
 
+const changeUserPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ error: "New password is required" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to change password" });
+  }
+};
+
 module.exports = {
     signup,
     login,
@@ -396,5 +424,6 @@ module.exports = {
     verifyUser,
     unverifyUser,
     changeUserRole,
-    changeUserRequest
+    changeUserRequest,
+    changeUserPassword
 };
