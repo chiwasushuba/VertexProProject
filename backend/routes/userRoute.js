@@ -16,7 +16,8 @@ const {
     unverifyUser,
     changeUserRole,
     changeUserRequest,
-    changeUserPassword
+    changeUserPassword,
+    getUserTime
 } = require('../controllers/userController');
 
 // Signup with profile image upload
@@ -37,6 +38,7 @@ router.post('/login', login);
 
 // Get users
 router.get('/', getUsers);
+router.get('/time', getUserTime)
 
 // Get by role (placed BEFORE /:id to avoid conflicts)
 router.get('/role/user', getAllUserRole);
@@ -44,6 +46,7 @@ router.get('/role/admin', getAllAdminRole);
 
 // Get single user
 router.get('/:id', getUser);
+
 
 // Update user
 

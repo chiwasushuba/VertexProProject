@@ -412,6 +412,30 @@ const changeUserPassword = async (req, res) => {
   }
 };
 
+const getUserTime = async (req, res) => {
+  try {
+    const now = new Date();
+
+    const options = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Manila", // Force PH time
+    };
+
+    const phtTime = new Intl.DateTimeFormat("en-PH", options).format(now);
+
+    res.status(200).json({ utc: now.toISOString() });
+  } catch (error) {
+    console.error("Error generating server time:", error);
+    res.status(500).json({ error: "Failed to get server time" });
+  }
+};
+
 module.exports = {
     signup,
     login,
@@ -425,5 +449,6 @@ module.exports = {
     unverifyUser,
     changeUserRole,
     changeUserRequest,
-    changeUserPassword
+    changeUserPassword,
+    getUserTime
 };
