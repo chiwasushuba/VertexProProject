@@ -1,20 +1,18 @@
 // app/(your-route)/ProfilePage.tsx
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import type React from "react"
-
-import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import api from "@/utils/axios"
-import type { AxiosError } from "axios"
-import Header from "@/components/header"
-import { RouteGuard } from "@/app/RouteGuard"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import api from "@/utils/axios";
+import type { AxiosError } from "axios";
+import Header from "@/components/header";
+import { RouteGuard } from "@/app/RouteGuard";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Calendar,
   CreditCard,
@@ -27,17 +25,17 @@ import {
   MapPin,
   Mail,
   Trash2,
-} from "lucide-react"
-import type { UserProfile } from "@/types/userProfileType"
-import { useAuthContext } from "@/hooks/useAuthContext"
-import TemplateDialog from "@/components/templateDialog"
-import EditProfileDialog from "@/components/editProfileDialog"
-import EditPasswordDialog from "@/components/editPassword"
+} from "lucide-react";
+import type { UserProfile } from "@/types/userProfileType";
+import { useAuthContext } from "@/hooks/useAuthContext";
+import TemplateDialog from "@/components/templateDialog";
+import EditProfileDialog from "@/components/editProfileDialog";
+import EditPasswordDialog from "@/components/editPassword";
 
 interface InfoItemProps {
-  icon: any
-  label: string
-  value: string
+  icon: any; // component
+  label: string;
+  value: string;
 }
 
 function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
@@ -49,43 +47,38 @@ function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
         <p className="text-sm text-gray-600 break-words">{value}</p>
       </div>
     </div>
-  )
+  );
 }
 
 interface PhotoObj {
-  url: string
-  timestampId: string
+  url: string;
+  timestampId: string;
 }
 
 /* Mobile-friendly PhotoPreview component (integrates preview + delete) */
 interface PhotoPreviewProps {
-  photo: PhotoObj
-  onDelete: (index: number, photo: PhotoObj) => Promise<void> | void
-  isOwnProfile: boolean
-  index: number
+  photo: PhotoObj;
+  onDelete: (index: number, photo: PhotoObj) => Promise<void> | void;
+  isOwnProfile: boolean;
+  index: number;
 }
 
-function PhotoPreview({
-  photo,
-  onDelete,
-  isOwnProfile,
-  index,
-}: PhotoPreviewProps) {
-  const [open, setOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+function PhotoPreview({ photo, onDelete, isOwnProfile, index }: PhotoPreviewProps) {
+  const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm("Delete this photo? This cannot be undone.")) return
+    if (!confirm("Delete this photo? This cannot be undone.")) return;
     try {
-      setDeleting(true)
-      await onDelete(index, photo)
-      setOpen(false)
+      setDeleting(true);
+      await onDelete(index, photo);
+      setOpen(false);
     } catch (err) {
       // onDelete shows alert/logs; keep UI state consistent
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
-  }
+  };
 
   return (
     <>
@@ -100,9 +93,9 @@ function PhotoPreview({
         {isOwnProfile && (
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              if (!confirm("Delete this photo?")) return
-              void onDelete(index, photo)
+              e.stopPropagation();
+              if (!confirm("Delete this photo?")) return;
+              void onDelete(index, photo);
             }}
             className="absolute top-2 right-2 h-7 w-7 p-0 rounded-full bg-white/90 flex items-center justify-center shadow z-10"
             aria-label="Delete photo"
@@ -129,63 +122,71 @@ function PhotoPreview({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
 /* -------------------------
    ProfilePage (main export)
    ------------------------- */
 export default function ProfilePage() {
-  const { id } = useParams()
-  const { userInfo } = useAuthContext()
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
+  const params = useParams();
+  const id = (params as any)?.id as string | undefined;
+  const { userInfo } = useAuthContext();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   // changed: photos are objects carrying timestampId
-  const [photos, setPhotos] = useState<PhotoObj[]>([])
-  const [file, setFile] = useState<File | null>(null)
-  const [tempDialogOpen, setTempDialogOpen] = useState(false)
-  const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false)
-  const [editPasswordDialogOpen, setEditPasswordDialogOpen] = useState(false)
+  const [photos, setPhotos] = useState<PhotoObj[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [tempDialogOpen, setTempDialogOpen] = useState(false);
+  const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false);
+  const [editPasswordDialogOpen, setEditPasswordDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!id) return
-
-    const fetchUser = async () => {
-      try {
-        const res = await api.get(`/user/${id}`)
-        setUser(res.data)
-      } catch (err) {
-        const error = err as AxiosError<{ message?: string }>
-        setError(error.response?.data?.message || "Failed to fetch user")
-      } finally {
-        setLoading(false)
-      }
+    if (!id) {
+      setLoading(false);
+      setError("No user id provided");
+      return;
     }
 
-    fetchUser()
-  }, [id])
+    const fetchUser = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.get(`/user/${id}`);
+        setUser(res.data);
+      } catch (err) {
+        const error = err as AxiosError<{ message?: string }>;
+        setError(error.response?.data?.message || "Failed to fetch user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [id]);
 
   // Fetch photos when user changes — keep timestampId for deletes
   useEffect(() => {
-    if (!user?._id) return
+    if (!user?._id) return;
 
     const fetchPhotos = async () => {
       try {
-        const res = await api.get(`/timestamp/user/${user._id}`)
+        const res = await api.get(`/timestamp/user/${user._id}`);
+        const arr = Array.isArray(res.data) ? res.data : [];
         // res.data is an array of timestamp docs: { _id, pictures: [...] }
-        const allPhotos: PhotoObj[] = res.data.flatMap((item: any) =>
+        const allPhotos: PhotoObj[] = arr.flatMap((item: any) =>
           (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id }))
-        )
-        setPhotos(allPhotos)
+        );
+        setPhotos(allPhotos);
       } catch (err) {
-        console.error("Failed to fetch photos:", err)
+        console.error("Failed to fetch photos:", err);
       }
-    }
+    };
 
-    fetchPhotos()
-  }, [user])
+    fetchPhotos();
+  }, [user]);
 
   if (loading) {
     return (
@@ -200,7 +201,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </RouteGuard>
-    )
+    );
   }
 
   if (error) {
@@ -216,7 +217,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </RouteGuard>
-    )
+    );
   }
 
   if (!user) {
@@ -232,126 +233,140 @@ export default function ProfilePage() {
           </div>
         </div>
       </RouteGuard>
-    )
+    );
   }
 
-  const isOwnProfile = userInfo?.user?._id === id
-  const viewerRole = userInfo?.user?.role as string | undefined
-  const targetRole = user.role as string | undefined
+  const isOwnProfile = userInfo?.user?._id === id;
+  const viewerRole = userInfo?.user?.role as string | undefined;
+  const targetRole = user.role as string | undefined;
 
   // RULES for showing the password button:
   // - anyone can change their own password (user/admin/superAdmin)
   // - admin can change any 'user' password (but NOT superAdmin)
   // - superAdmin can change anyone's password (including other superAdmins)
   const canChangePassword = (() => {
-    if (!viewerRole) return false
+    if (!viewerRole) return false;
 
     // own profile: anyone can change their own pw
-    if (isOwnProfile) return true
+    if (isOwnProfile) return true;
 
     // superAdmin: can change anyone
-    if (viewerRole === "superAdmin") return true
+    if (viewerRole === "superAdmin") return true;
 
     // admin: can change other users but NOT superAdmins
-    if (viewerRole === "admin" && targetRole && targetRole !== "superAdmin") return true
+    if (viewerRole === "admin" && targetRole && targetRole !== "superAdmin") return true;
 
     // otherwise: cannot change someone else's password
-    return false
-  })()
+    return false;
+  })();
 
   const handleSendLetter = async () => {
-    setTempDialogOpen(true)
-  }
+    setTempDialogOpen(true);
+  };
 
   const handleRequestLetter = async () => {
     try {
-      await api.patch(`/user/changerequest/${userInfo.user._id}`)
-      alert("Request submitted.")
+      const requesterId = userInfo?.user?._id;
+      if (!requesterId) {
+        alert("You must be logged in to request a letter.");
+        return;
+      }
+
+      // explicitly send { request: true }
+      await api.patch(`/user/changerequest/${requesterId}`, {
+        request: true
+      });
+
+      alert("Request submitted.");
     } catch (e) {
-      console.error(e)
-      alert("Failed to request letter.")
+      console.error("Error requesting letter:", e);
+      alert("Failed to request letter.");
     }
-  }
+  };
+
 
   // Optimistic delete with auth header, reverts on failure
   const handleDeletePhoto = async (index: number, photo: PhotoObj) => {
-    if (!isOwnProfile) return
+    if (!isOwnProfile) return;
 
-    const previous = photos.slice()
+    const previous = photos.slice();
     // optimistic remove
-    const updated = photos.filter((_, i) => i !== index)
-    setPhotos(updated)
+    const updated = photos.filter((_, i) => i !== index);
+    setPhotos(updated);
 
     try {
-      const headers: Record<string, string> = {}
-      if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`
+      const headers: Record<string, string> = {};
+      if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`;
 
       // Call your backend deleteSingleImage: DELETE /timestamp/:id/image
       await api.delete(`/timestamp/${photo.timestampId}/image`, {
         headers,
         data: { imageUrl: photo.url },
-      })
+      });
 
       // success — UI already updated
     } catch (err) {
       // revert
-      setPhotos(previous)
-      const error = err as AxiosError<{ message?: string }>
-      console.error("Failed to delete photo:", error?.response?.data?.message || err)
-      alert(error?.response?.data?.message || "Failed to delete photo. Please try again.")
-      throw err
+      setPhotos(previous);
+      const error = err as AxiosError<{ message?: string }>;
+      console.error("Failed to delete photo:", error?.response?.data?.message || err);
+      alert(error?.response?.data?.message || "Failed to delete photo. Please try again.");
+      throw err;
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
+      setFile(e.target.files[0]);
     }
-  }
+  };
 
   const handleFileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!file || !isOwnProfile || !user?._id) return
+    e.preventDefault();
+    if (!file || !isOwnProfile || !user?._id) return;
 
-    setIsUploading(true)
+    setIsUploading(true);
     try {
-      const formData = new FormData()
-      formData.append("picture", file)
+      const formData = new FormData();
+      formData.append("picture", file);
 
-      const headers: Record<string, string> = {}
-      if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`
+      const headers: Record<string, string> = {};
+      if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`;
 
       await api.post(`/timestamp`, formData, {
         headers, // axios sets the correct Content-Type with boundary
-      })
+      });
 
       // Refetch photos after upload
-      const res = await api.get(`/timestamp/user/${user._id}`)
-      const allPhotos: PhotoObj[] = res.data.flatMap((item: any) =>
+      const res = await api.get(`/timestamp/user/${user._id}`);
+      const arr = Array.isArray(res.data) ? res.data : [];
+      const allPhotos: PhotoObj[] = arr.flatMap((item: any) =>
         (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id }))
-      )
-      setPhotos(allPhotos)
+      );
+      setPhotos(allPhotos);
 
-      setFile(null)
+      setFile(null);
     } catch (err) {
-      console.error("Upload failed:", err)
-      alert("Upload failed. Please try again.")
+      console.error("Upload failed:", err);
+      alert("Upload failed. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleEditProfile = () => {
-    setEditProfileDialogOpen(true)
-  }
+    setEditProfileDialogOpen(true);
+  };
 
   // Prepare dialog props
-  const fullName = `${user.firstName} ${user.middleName ? user.middleName + " " : ""}${user.lastName}`
-  const role = user.position || user.role || ""
-  const startTime = (user as any).startTime || ""
-  const endTime = (user as any).endTime || ""
-  const email = user.email || ""
+  const fullName = `${user.firstName ?? ""} ${user.middleName ? user.middleName + " " : ""}${user.lastName ?? ""}`.trim();
+  const role = (user.position || user.role || "") as string;
+  const startTime = (user as any).startTime || "";
+  const endTime = (user as any).endTime || "";
+  const email = user.email || "";
 
+  // safe initials
+  const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`;
 
   // Main Return
   return (
@@ -367,11 +382,8 @@ export default function ProfilePage() {
             <Card className="shadow-lg">
               <CardHeader className="flex items-center flex-col">
                 <Avatar className="w-24 h-24 mb-4 border-4 border-white shadow-lg">
-                  <AvatarImage src={user.profileImage || "/placeholder.svg"} alt={user.firstName} />
-                  <AvatarFallback className="text-xl font-semibold bg-green-600 text-white">
-                    {user.firstName[0]}
-                    {user.lastName[0]}
-                  </AvatarFallback>
+                  <AvatarImage src={user.profileImage || "/placeholder.svg"} alt={user.firstName ?? "User"} />
+                  <AvatarFallback className="text-xl font-semibold bg-green-600 text-white">{initials}</AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-2xl text-center text-balance">
                   {user.firstName} {user.middleName} {user.lastName}
@@ -404,12 +416,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {photos.map((photo, index) => (
                     <div key={`${photo.timestampId}-${index}`} className="aspect-square">
-                      <PhotoPreview
-                        photo={photo}
-                        index={index}
-                        isOwnProfile={isOwnProfile}
-                        onDelete={handleDeletePhoto}
-                      />
+                      <PhotoPreview photo={photo} index={index} isOwnProfile={isOwnProfile} onDelete={handleDeletePhoto} />
                     </div>
                   ))}
 
@@ -548,9 +555,13 @@ export default function ProfilePage() {
               <CardContent className="flex justify-between items-center">
                 <div className="flex gap-5">
                   {/* Request Letter only for regular users on own profile */}
-                  {isOwnProfile && !(viewerRole === "admin" || viewerRole === "superAdmin") && (
+                  {isOwnProfile ? (
                     <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
                       Request Store Intro Letter
+                    </Button>
+                  ) : (
+                    <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
+                      Send Store Intro Letter
                     </Button>
                   )}
 
@@ -567,24 +578,21 @@ export default function ProfilePage() {
                       {isOwnProfile ? "Change Password" : "Reset Password"}
                     </Button>
                   )}
-
-                  {/* Admins (or others) may have other buttons (e.g., send letter) handled elsewhere */}
                 </div>
 
                 {/* Password dialog (props passed correctly) */}
                 <EditPasswordDialog _id={user._id} open={editPasswordDialogOpen} setOpen={setEditPasswordDialogOpen} />
               </CardContent>
             </Card>
-
           </div>
         </div>
 
         {/* Template Dialog */}
-        <TemplateDialog name={fullName} role={role} startTime={startTime} endTime={endTime} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} />
+        <TemplateDialog name={fullName} role={role} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} />
 
         {/* Edit Profile Dialog */}
         <EditProfileDialog _id={user._id} open={editProfileDialogOpen} setOpen={setEditProfileDialogOpen} />
       </div>
     </RouteGuard>
-  )
+  );
 }

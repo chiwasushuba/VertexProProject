@@ -2,7 +2,7 @@ import React from 'react'
 import { UserType } from '@/types/userType'
 import { Card, CardTitle } from './ui/card'
 import { Button } from './ui/button'
-import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select'
 import { useRouter } from 'next/navigation'
 
@@ -13,7 +13,8 @@ type Props = UserType & {
   onChangeRole: (id: string, newRole: "user" | "admin" | "superAdmin") => void
   currentUserRole: "user" | "admin" | "superAdmin"
   currentUserId: string
-  onClick?: () => void   // optional click handler
+  request: boolean
+  onClick?: () => void   
 }
 
 const UserCard = ({ 
@@ -29,6 +30,7 @@ const UserCard = ({
   onChangeRole,
   currentUserRole, 
   currentUserId,
+  request,
   onClick
 }: Props) => {
   const router = useRouter()
@@ -38,9 +40,9 @@ const UserCard = ({
 
   const handleNavigate = () => {
     if (onClick) {
-      onClick() // use external click handler if passed
+      onClick()
     } else {
-      router.push(`/profile/${id}`) // fallback to default navigation
+      router.push(`/profile/${id}`)
     }
   }
 
@@ -62,6 +64,9 @@ const UserCard = ({
             {name}
           </CardTitle>
           <p className="text-gray-600">{email}</p>
+          {request && (
+            <p className="text-gray-600 italic">Requesting...</p>
+          )}
         </div>
       </div>
 

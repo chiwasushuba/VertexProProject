@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import PizZip from "pizzip"
 import Docxtemplater from "docxtemplater"
 import { saveAs } from "file-saver"
@@ -13,27 +13,19 @@ import { Button } from "@/components/ui/button"
 import Header from "@/components/header"
 import { RouteGuard } from "../RouteGuard"
 
-const TEMPLATE_URL = "/templateWord.docx" // public folder
+const TEMPLATE_URL = "/templateWord.docx" 
 
 const LetterPage: React.FC = () => {
   const [form, setForm] = useState({
     storeBranch: "",
     address: "",
     clientName: "",
-    number: "",
-    name: "",
-    role: "",
     dateToday: new Date().toISOString().split("T")[0],
     dateStart: "",
     dateEnd: "",
     startTime: "",
     endTime: "",
   })
-
-  useEffect(() => {
-    const today = new Date().toISOString().split("T")[0]
-    setForm((prev) => ({ ...prev, dateToday: today }))
-  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -112,10 +104,9 @@ const LetterPage: React.FC = () => {
                   setForm((prev) => ({ ...prev, [fieldName]: "" }))
                   return
                 }
-                const localDate = new Date(date)
-                const yyyy = localDate.getFullYear()
-                const mm = String(localDate.getMonth() + 1).padStart(2, "0")
-                const dd = String(localDate.getDate()).padStart(2, "0")
+                const yyyy = date.getFullYear()
+                const mm = String(date.getMonth() + 1).padStart(2, "0")
+                const dd = String(date.getDate()).padStart(2, "0")
                 setForm((prev) => ({
                   ...prev,
                   [fieldName]: `${yyyy}-${mm}-${dd}`,
@@ -135,7 +126,10 @@ const LetterPage: React.FC = () => {
         <Header variant="signedUser" />
         <div className="flex flex-col items-center p-4 w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] xl:w-[50vw] mx-auto">
           <h2 className="text-2xl font-bold mb-6 mt-6">Store Intro Letter</h2>
-          <form className="flex flex-col gap-4 bg-gray-100 p-8 w-full rounded-2xl" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-4 bg-gray-100 p-8 w-full rounded-2xl"
+            onSubmit={handleSubmit}
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {renderDatePicker("Start Date", form.dateStart, "dateStart")}
               {renderDatePicker("End Date", form.dateEnd, "dateEnd")}
@@ -189,36 +183,6 @@ const LetterPage: React.FC = () => {
                 value={form.clientName}
                 onChange={handleInputChange}
                 placeholder="Enter client name"
-                className="w-full border p-2 rounded"
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <h3 className="font-medium mb-1">Your Number</h3>
-              <input
-                name="number"
-                value={form.number}
-                onChange={handleInputChange}
-                placeholder="Enter your number"
-                className="w-full border p-2 rounded"
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <h3 className="font-medium mb-1">Your Role</h3>
-              <input
-                name="role"
-                value={form.role}
-                onChange={handleInputChange}
-                placeholder="Enter your role"
-                className="w-full border p-2 rounded"
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <h3 className="font-medium mb-1">Your Name</h3>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleInputChange}
-                placeholder="Enter your name"
                 className="w-full border p-2 rounded"
               />
             </div>

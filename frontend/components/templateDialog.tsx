@@ -6,22 +6,27 @@ import { Label } from './ui/label'
 import { Button } from './ui/button'
 import PizZip from 'pizzip'
 import Docxtemplater from 'docxtemplater'
-import { saveAs } from 'file-saver'
 import api from '@/utils/axios'
+import { useAuthContext } from '@/hooks/useAuthContext'
 
 interface TemplateDialogProps {
   name: string
   role: string
-  startTime: string
-  endTime: string
   email: string
   open: boolean
   setOpen: (open: boolean) => void
 }
 
-const TemplateDialog = ({ name, role, startTime, endTime, email, open, setOpen }: TemplateDialogProps) => {
+const TemplateDialog = ({
+  name,
+  role,
+  email,
+  open,
+  setOpen,
+}: TemplateDialogProps) => {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const { userInfo } = useAuthContext() // ✅ get logged-in user
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -43,11 +48,15 @@ const TemplateDialog = ({ name, role, startTime, endTime, email, open, setOpen }
       const doc = new Docxtemplater(zip, {
         paragraphLoop: true,
         linebreaks: true,
-        delimiters: { start: '<<', end: '>>' } 
+        delimiters: { start: '<<', end: '>>' },
       })
 
-      // Fill template with data
-      doc.setData({ name, role, startTime, endTime })
+      // Insert placeholders
+      doc.setData({
+        userName: name,
+        userRole: role,
+      })
+
       doc.render()
 
       // Generate output file
@@ -64,6 +73,14 @@ const TemplateDialog = ({ name, role, startTime, endTime, email, open, setOpen }
 
       // Send to API
       await api.post('/email/send', formData)
+
+      // ✅ After successful send, reset request to false
+      const requesterId = userInfo?.user?._id
+      if (requesterId) {
+        await api.patch(`/user/changerequest/${requesterId}`, {
+          request: false,
+        })
+      }
 
       alert('File successfully submitted!')
       setOpen(false)

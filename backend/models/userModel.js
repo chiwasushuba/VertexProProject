@@ -1,9 +1,9 @@
 // User Model
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
+    company_id: { type: String, unique: true }, // auto-generated like VP0001
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['superAdmin','admin', 'user'], default: 'user' },
@@ -50,15 +50,26 @@ userSchema.statics.signup = async function(userData) {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(userData.password, salt);
 
+    // Generate company_id (VP0001, VP0002, etc.)
+    const lastUser = await this.findOne().sort({ createdAt: -1 }).exec();
+    let newIdNumber = 1;
+
+    if (lastUser && lastUser.company_id) {
+        const lastNumber = parseInt(lastUser.company_id.replace("VP", ""), 10);
+        newIdNumber = lastNumber + 1;
+    }
+
+    const company_id = `VP${String(newIdNumber).padStart(4, "0")}`;
+
     // Create user
     const user = await this.create({
         ...userData,
-        password: hash
+        password: hash,
+        company_id
     });
 
     return user;
 };
-
 
 userSchema.statics.login = async function(email, password) {
     if (!email || !password) {

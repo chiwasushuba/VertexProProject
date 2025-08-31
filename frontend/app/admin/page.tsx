@@ -15,7 +15,7 @@ const Page = () => {
   const { userInfo } = useAuthContext()
   const router = useRouter()
 
-  const currentUserRole: "user" | "admin" | "superAdmin" = userInfo?.user?.role || "user"
+  const currentUserRole: "user" | "admin" | "superAdmin" = (userInfo?.user?.role as any) || "user"
   const currentUserId = userInfo?.user?._id || ""
 
   const [admins, setAdmins] = useState<UserType[]>([])
@@ -24,7 +24,16 @@ const Page = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // if there's no authenticated user, stop loading and don't fetch
+    if (!userInfo) {
+      setLoading(false)
+      return
+    }
+
     const fetchAdmins = async () => {
+      setLoading(true)
+      setError(null)
+
       try {
         const resAdmin = await api.get("/user/role/admin")
         const resUser = await api.get("/user/role/user")
@@ -36,6 +45,7 @@ const Page = () => {
           pfp: user.profileImage || user.pfp,
           verified: user.verified,
           role: user.role,
+          request: user.request ?? false
         }))
 
         const normalizedUsers: UserType[] = resUser.data.map((user: any) => ({
@@ -44,22 +54,22 @@ const Page = () => {
           email: user.email,
           pfp: user.profileImage || user.pfp,
           verified: user.verified,
-          role: user.role, 
+          role: user.role,
+          request: user.request ?? false
         }))
 
-        setUsers(normalizedUsers)
         setAdmins(normalizedAdmins)
+        setUsers(normalizedUsers)
       } catch (err) {
-        const error = err as AxiosError<{ message?: string }>
-        setError(error.response?.data?.message || "Failed to fetch admins")
+        const axiosError = err as AxiosError<{ message?: string }>
+        setError(axiosError.response?.data?.message || "Failed to fetch admins")
+        console.error("fetchAdmins error:", err)
       } finally {
         setLoading(false)
       }
     }
 
-    if (userInfo) {
-      fetchAdmins()
-    }
+    fetchAdmins()
   }, [userInfo])
 
   const handleOpenProfile = (id: string) => {
@@ -69,6 +79,7 @@ const Page = () => {
   const handleVerify = async (id: string) => {
     try {
       await api.patch(`/user/verify/${id}`)
+
       setUsers(prev =>
         prev.map(user =>
           user.id === id ? { ...user, verified: true } : user
@@ -87,6 +98,7 @@ const Page = () => {
   const handleUnverify = async (id: string) => {
     try {
       await api.patch(`/user/unverify/${id}`)
+
       setUsers(prev =>
         prev.map(user =>
           user.id === id ? { ...user, verified: false } : user
@@ -120,7 +132,7 @@ const Page = () => {
     try {
       await api.patch(`/user/changerole/${id}`, { role: newRole });
 
-      // Optionally still update local state
+      // update local state so UI reflects the change immediately
       setUsers(prev =>
         prev.map(user => (user.id === id ? { ...user, role: newRole } : user))
       );
@@ -128,13 +140,13 @@ const Page = () => {
         prev.map(admin => (admin.id === id ? { ...admin, role: newRole } : admin))
       );
 
-      // Force page reload to reflect role change globally
-      window.location.reload();
+      // If you need to reflect this change globally (auth tokens, menus, etc.)
+      // you can re-fetch user data or do a full reload. Left commented:
+      // window.location.reload();
     } catch (err) {
       console.error("Failed to change role:", err);
     }
   };
-
 
   return (
     <RouteGuard allowedRoles={["admin", "superAdmin"]}>
@@ -150,7 +162,7 @@ const Page = () => {
             {!loading && !error && users.length === 0 && (
               <p className="text-black">No users found</p>
             )}
-            
+
             <div className='flex flex-col gap-2'>
               <Label className='text-2xl'>Admins: </Label>
               {admins.map(admin => (
@@ -169,6 +181,7 @@ const Page = () => {
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                   onClick={() => handleOpenProfile(admin.id)}
+                  request ={admin.request}
                 />
               ))}
             </div>
@@ -191,6 +204,7 @@ const Page = () => {
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                   onClick={() => handleOpenProfile(user.id)}
+                  request ={user.request} 
                 />
               ))}
             </div>

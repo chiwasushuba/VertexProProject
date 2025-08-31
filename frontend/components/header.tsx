@@ -1,13 +1,11 @@
 'use client'
 
 import { useRouter } from "next/navigation"
-import type React from "react"
+import React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { MountainIcon } from "lucide-react"
 import { useLogout } from "@/hooks/useLogout"
 import { useAuthContext } from "@/hooks/useAuthContext"
-import { Label } from "@radix-ui/react-label"
 
 type HeaderVariant = "default" | "signedUser" | "noSignedUser" | "menu"
 
@@ -21,12 +19,18 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
   const { logout } = useLogout()
   const router = useRouter()
 
-  const handleLogout = () => {
-    logout()
-    router.push("/login") // redirect to login after logout
+  const handleLogout = async () => {
+    try {
+      // await if logout is async — safe either way
+      await logout?.()
+    } catch (err) {
+      console.error("Logout failed:", err)
+    } finally {
+      router.push("/login")
+    }
   }
 
-  let actionSection
+  let actionSection = <></>
 
   if (variant === "signedUser") {
     actionSection = (
@@ -34,6 +38,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
         variant="link"
         className="mr-4 text-primary-foreground"
         onClick={handleLogout}
+        aria-label="Logout"
       >
         Logout
       </Button>
@@ -42,50 +47,51 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
     actionSection = (
       <Button
         className="mr-4 bg-secondary text-primary-foreground hover:bg-secondary/90"
-        onClick={() => router.push("/login")} // navigate to login
+        onClick={() => router.push("/login")}
       >
         Login
       </Button>
     )
-  } else {
-    actionSection = <></>
   }
+
+  const isAdmin = !!(userInfo?.user?.role && (userInfo.user.role === 'admin' || userInfo.user.role === 'superAdmin'))
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-gray-800 mb-4">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-semibold text-primary-foreground"
-        >
-          <MountainIcon className="h-6 w-6 text-primary-foreground" />
-          <span className="sr-only">VertexPro Inc</span>
-          <span>VERTEXPRO</span>
-        </Link>
+        <div className="flex items-center gap-2 font-semibold text-primary-foreground">
+          <Link href="/" className="flex items-center gap-2">
+            <img
+              // NOTE: use the correct URL for your storage; this one uses appspot.com
+              src="https://firebasestorage.googleapis.com/v0/b/vertexpro-inc-fcef5.firebasestorage.app/o/vertexpro.picture.png?alt=media&token=1f5e69ad-c98a-4684-ab54-1dd2a2b17c05"
+              alt="VertexPro Logo"
+              width={200}
+              height={200}
+            />
+          </Link>
+        </div>
+
         {location && (
           <div className="flex items-center justify-center text-sm font-medium text-primary-foreground">
             <span>{location}</span>
           </div>
         )}
 
-        {(userInfo?.user.role === 'admin' || userInfo?.user.role === 'superAdmin') ?
-          (<div className="flex items-center space-x-4">
-          <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
-            Dashboard
-          </Link>
-          <Label className="flex items-center gap-2 font-semibold text-primary-foreground"> | </Label>
-          <Link href={"/letter"} className="flex items-center gap-2 font-semibold text-primary-foreground">
-            Letter
-          </Link>
-          {actionSection}
-          </div>) : (
+        <div className="flex items-center space-x-4">
+          {isAdmin && (
             <>
-              {actionSection}
+              <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
+                Dashboard
+              </Link>
+              <span className="text-primary-foreground">|</span>
+              <Link href={"/letter"} className="flex items-center gap-2 font-semibold text-primary-foreground">
+                Letter
+              </Link>
             </>
-          )
-        }
-        
+          )}
 
+          {actionSection}
+        </div>
       </div>
     </header>
   )

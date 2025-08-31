@@ -11,6 +11,7 @@ import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useSignup } from '@/hooks/useSignup'
+import api from "@/utils/axios"
 
 const SignupPage = () => {
   const router = useRouter()
@@ -43,24 +44,18 @@ const SignupPage = () => {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const res = await fetch("http://localhost:4000/health") // replace with your health endpoint
-        if (res.ok) {
+        const res = await api.get("/user") // will throw if backend is down
+        if (res.status === 200) {
           setBackendReady(true)
-        } else {
-          setBackendReady(false)
+          setCheckingBackend(false)
+          return
         }
       } catch (err) {
-        setBackendReady(false)
-      } finally {
-        setCheckingBackend(false)
+        console.warn("Backend not ready, retrying...")
+        setTimeout(checkBackend, 2000) // retry every 2s
       }
     }
-
     checkBackend()
-
-    // Retry every 5s until backend is ready
-    const interval = setInterval(checkBackend, 5000)
-    return () => clearInterval(interval)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
