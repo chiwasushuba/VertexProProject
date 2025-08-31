@@ -67,6 +67,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
             <span>{location}</span>
           </div>
         )}
+
         {(userInfo?.user.role === 'admin' || userInfo?.user.role === 'superAdmin') &&
           <div className="flex items-center space-x-4">
           <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
@@ -78,9 +79,9 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
           </Link>
           {actionSection}
           </div>
-          
         }
-        
+        {actionSection}
+
       </div>
     </header>
   )

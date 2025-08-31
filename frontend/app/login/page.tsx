@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLogin } from '@/hooks/useLogin'
@@ -20,8 +20,36 @@ const LoginPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
-  const { login} = useLogin()
+  // Backend readiness states
+  const [backendReady, setBackendReady] = useState(false)
+  const [checkingBackend, setCheckingBackend] = useState(true)
+
+  const { login } = useLogin()
   const router = useRouter()
+
+  // Check if backend is ready
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`) // change to your health/ready endpoint
+        if (res.ok) {
+          setBackendReady(true)
+        } else {
+          setBackendReady(false)
+        }
+      } catch (err) {
+        setBackendReady(false)
+      } finally {
+        setCheckingBackend(false)
+      }
+    }
+
+    checkBackend()
+
+    // Optionally, retry every 5s until backend is ready
+    const interval = setInterval(checkBackend, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,19 +64,29 @@ const LoginPage = () => {
         return
       }
 
-      // Clear fields
       setEmail("")
       setPassword("")
-
-      // Show dialog only if login is successful
       setIsDialogOpen(true)
-
     } catch (err: any) {
       console.error("Error logging in:", err)
       setLocalError(err.message || "Login failed")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading screen while backend is not ready
+  if (checkingBackend || !backendReady) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg font-semibold">
+            {checkingBackend ? "Checking server..." : "Server not ready, retrying..."}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -77,12 +115,12 @@ const LoginPage = () => {
                 />
               </div>
 
-              {/* Password with toggle */}
+              {/* Password */}
               <div className="relative">
                 <Label>Password</Label>
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -97,29 +135,11 @@ const LoginPage = () => {
                 </button>
               </div>
 
-              {/* Show error if any */}
               {localError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
                   {localError}
                 </div>
               )}
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <input
-                    id="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <Label htmlFor="remember-me">Remember me</Label>
-                </div>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary underline-offset-2 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
 
               <Button
                 type="submit"
@@ -142,7 +162,6 @@ const LoginPage = () => {
         </Card>
       </div>
 
-      {/* Only show NavigationDialog if login is successful */}
       {isDialogOpen && <NavigationDialog open={isDialogOpen} />}
     </div>
   )

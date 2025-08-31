@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -35,6 +35,33 @@ const SignupPage = () => {
   const [nbiClearanceFile, setNbiClearanceFile] = useState<File | null>(null)
   const [fitToWorkFile, setFitToWorkFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Backend readiness states
+  const [backendReady, setBackendReady] = useState(false)
+  const [checkingBackend, setCheckingBackend] = useState(true)
+
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/health") // replace with your health endpoint
+        if (res.ok) {
+          setBackendReady(true)
+        } else {
+          setBackendReady(false)
+        }
+      } catch (err) {
+        setBackendReady(false)
+      } finally {
+        setCheckingBackend(false)
+      }
+    }
+
+    checkBackend()
+
+    // Retry every 5s until backend is ready
+    const interval = setInterval(checkBackend, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +98,20 @@ const SignupPage = () => {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading screen while backend is not ready
+  if (checkingBackend || !backendReady) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg font-semibold">
+            {checkingBackend ? "Checking server..." : "Server not ready, retrying..."}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -113,7 +154,6 @@ const SignupPage = () => {
                 </button>
               </div>
 
-              {/* Show error if any */}
               {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
                   {error}

@@ -352,6 +352,8 @@ export default function ProfilePage() {
   const endTime = (user as any).endTime || ""
   const email = user.email || ""
 
+
+  // Main Return
   return (
     <RouteGuard>
       <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
