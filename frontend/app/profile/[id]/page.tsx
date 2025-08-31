@@ -32,6 +32,7 @@ import type { UserProfile } from "@/types/userProfileType"
 import { useAuthContext } from "@/hooks/useAuthContext"
 import TemplateDialog from "@/components/templateDialog"
 import EditProfileDialog from "@/components/editProfileDialog"
+import EditPasswordDialog from "@/components/editPassword"
 
 interface InfoItemProps {
   icon: any
@@ -146,6 +147,7 @@ export default function ProfilePage() {
   const [file, setFile] = useState<File | null>(null)
   const [tempDialogOpen, setTempDialogOpen] = useState(false)
   const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false)
+  const [editPasswordDialogOpen, setEditPasswordDialogOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -234,6 +236,28 @@ export default function ProfilePage() {
   }
 
   const isOwnProfile = userInfo?.user?._id === id
+  const viewerRole = userInfo?.user?.role as string | undefined
+  const targetRole = user.role as string | undefined
+
+  // RULES for showing the password button:
+  // - anyone can change their own password (user/admin/superAdmin)
+  // - admin can change any 'user' password (but NOT superAdmin)
+  // - superAdmin can change anyone's password (including other superAdmins)
+  const canChangePassword = (() => {
+    if (!viewerRole) return false
+
+    // own profile: anyone can change their own pw
+    if (isOwnProfile) return true
+
+    // superAdmin: can change anyone
+    if (viewerRole === "superAdmin") return true
+
+    // admin: can change other users but NOT superAdmins
+    if (viewerRole === "admin" && targetRole && targetRole !== "superAdmin") return true
+
+    // otherwise: cannot change someone else's password
+    return false
+  })()
 
   const handleSendLetter = async () => {
     setTempDialogOpen(true)
@@ -520,47 +544,33 @@ export default function ProfilePage() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="flex justify-between items-center">
-                {isOwnProfile ? (
-                  <div className="flex gap-5">
-                    {/* Only show Request Letter if not admin/superAdmin */}
-                    {!(userInfo?.user?.role === "admin" || userInfo?.user?.role === "superAdmin") && (
-                      <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
-                        Request Store Intro Letter
-                      </Button>
-                    )}
+                <div className="flex gap-5">
+                  {/* Request Letter only for regular users on own profile */}
+                  {isOwnProfile && !(viewerRole === "admin" || viewerRole === "superAdmin") && (
+                    <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
+                      Request Store Intro Letter
+                    </Button>
+                  )}
+
+                  {/* Edit Profile only for own profile */}
+                  {isOwnProfile && (
                     <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700">
                       Edit Profile
                     </Button>
-                  </div>
-                ) : (
-                  <>
-                    {/* If the viewer is admin/superAdmin */}
-                    {(userInfo?.user?.role === "admin" || userInfo?.user?.role === "superAdmin") ? (
-                      <>
-                        {/* Hide all buttons if admin is viewing a superAdmin */}
-                        {!(userInfo?.user?.role === "admin" && user.role === "superAdmin") && (
-                          <div className="flex gap-5">
-                            <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700">
-                              Edit Profile
-                            </Button>
+                  )}
 
-                            {/* Admins & superAdmins can also send intro letters to users */}
-                            {user.role === "user" && (
-                              <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
-                                Send Store Intro Letter
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      // Normal users sending store intro letter
-                      <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
-                        Send Store Intro Letter
-                      </Button>
-                    )}
-                  </>
-                )}
+                  {/* Change/Reset Password button shown only when allowed by rules */}
+                  {canChangePassword && (
+                    <Button onClick={() => setEditPasswordDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                      {isOwnProfile ? "Change Password" : "Reset Password"}
+                    </Button>
+                  )}
+
+                  {/* Admins (or others) may have other buttons (e.g., send letter) handled elsewhere */}
+                </div>
+
+                {/* Password dialog (props passed correctly) */}
+                <EditPasswordDialog _id={user._id} open={editPasswordDialogOpen} setOpen={setEditPasswordDialogOpen} />
               </CardContent>
             </Card>
 
