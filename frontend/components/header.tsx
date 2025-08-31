@@ -68,8 +68,8 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
           </div>
         )}
 
-        {(userInfo?.user.role === 'admin' || userInfo?.user.role === 'superAdmin') &&
-          <div className="flex items-center space-x-4">
+        {(userInfo?.user.role === 'admin' || userInfo?.user.role === 'superAdmin') ?
+          (<div className="flex items-center space-x-4">
           <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
             Dashboard
           </Link>
@@ -78,9 +78,13 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
             Letter
           </Link>
           {actionSection}
-          </div>
+          </div>) : (
+            <>
+              {actionSection}
+            </>
+          )
         }
-        {actionSection}
+        
 
       </div>
     </header>

@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { useState, useEffect } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLogin } from '@/hooks/useLogin'
 import NavigationDialog from "@/components/navigationDialog"
+import api from "@/utils/axios"
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
@@ -20,36 +21,29 @@ const LoginPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
-  // Backend readiness states
-  const [backendReady, setBackendReady] = useState(false)
-  const [checkingBackend, setCheckingBackend] = useState(true)
+  const [isBackendReady, setIsBackendReady] = useState(false) // ✅ loading screen state
+  const [backendError, setBackendError] = useState<string | null>(null)
 
   const { login } = useLogin()
   const router = useRouter()
 
-  // Check if backend is ready
+  // Check backend by fetching all users
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`) // change to your health/ready endpoint
-        if (res.ok) {
-          setBackendReady(true)
-        } else {
-          setBackendReady(false)
+        const res = await api.get("/user")  // will throw if backend is down
+        if (res.status === 200) {
+          setIsBackendReady(true)
+          return
         }
       } catch (err) {
-        setBackendReady(false)
-      } finally {
-        setCheckingBackend(false)
+        console.warn("Backend not ready, retrying...")
+        setTimeout(checkBackend, 2000) // retry every 2s
       }
     }
-
     checkBackend()
-
-    // Optionally, retry every 5s until backend is ready
-    const interval = setInterval(checkBackend, 5000)
-    return () => clearInterval(interval)
   }, [])
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,9 +58,13 @@ const LoginPage = () => {
         return
       }
 
+      // Clear fields
       setEmail("")
       setPassword("")
+
+      // Show dialog only if login is successful
       setIsDialogOpen(true)
+
     } catch (err: any) {
       console.error("Error logging in:", err)
       setLocalError(err.message || "Login failed")
@@ -75,15 +73,14 @@ const LoginPage = () => {
     }
   }
 
-  // Show loading screen while backend is not ready
-  if (checkingBackend || !backendReady) {
+  // ✅ Loading screen while backend not ready
+  if (!isBackendReady) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-white mx-auto mb-4"></div>
-          <p className="text-white text-lg font-semibold">
-            {checkingBackend ? "Checking server..." : "Server not ready, retrying..."}
-          </p>
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-white" />
+          <p className="text-white text-lg font-medium">Connecting to server...</p>
+          {backendError && <p className="text-red-300 text-sm">{backendError}</p>}
         </div>
       </div>
     )
@@ -115,12 +112,12 @@ const LoginPage = () => {
                 />
               </div>
 
-              {/* Password */}
+              {/* Password with toggle */}
               <div className="relative">
                 <Label>Password</Label>
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -135,6 +132,7 @@ const LoginPage = () => {
                 </button>
               </div>
 
+              {/* Show error if any */}
               {localError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
                   {localError}
@@ -162,6 +160,7 @@ const LoginPage = () => {
         </Card>
       </div>
 
+      {/* Only show NavigationDialog if login is successful */}
       {isDialogOpen && <NavigationDialog open={isDialogOpen} />}
     </div>
   )
