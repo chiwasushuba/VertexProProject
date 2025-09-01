@@ -10,6 +10,7 @@ import api from '@/utils/axios'
 import { useAuthContext } from '@/hooks/useAuthContext'
 
 interface TemplateDialogProps {
+  requesterId: string
   name: string
   role: string
   email: string
@@ -18,6 +19,7 @@ interface TemplateDialogProps {
 }
 
 const TemplateDialog = ({
+  requesterId,
   name,
   role,
   email,
@@ -74,8 +76,6 @@ const TemplateDialog = ({
       // Send to API
       await api.post('/email/send', formData)
 
-      // ✅ After successful send, reset request to false
-      const requesterId = userInfo?.user?._id
       if (requesterId) {
         await api.patch(`/user/changerequest/${requesterId}`, {
           "request": false,

@@ -126,8 +126,8 @@ function PhotoPreview({ photo, onDelete, isOwnProfile, index }: PhotoPreviewProp
 }
 
 /* -------------------------
-   ProfilePage (main export)
-   ------------------------- */
+  ProfilePage (main export)
+  ------------------------- */
 export default function ProfilePage() {
   const params = useParams();
   const id = (params as any)?.id as string | undefined;
@@ -588,7 +588,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Template Dialog */}
-        <TemplateDialog name={fullName} role={role} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} />
+        <TemplateDialog name={fullName} role={role} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} requesterId={user._id} />
 
         {/* Edit Profile Dialog */}
         <EditProfileDialog _id={user._id} open={editProfileDialogOpen} setOpen={setEditProfileDialogOpen} />
