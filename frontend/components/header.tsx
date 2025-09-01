@@ -67,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
               alt="VertexPro Logo"
               width={200}
               height={200}
-            />
+            /> 
           </Link>
         </div>
 
@@ -77,8 +77,8 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
           </div>
         )}
 
-        <div className="flex items-center space-x-4">
-          {isAdmin && (
+        <div className="flex items-end space-x-4">
+          {isAdmin ? (
             <>
               <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
                 Dashboard
@@ -88,9 +88,11 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
                 Letter
               </Link>
             </>
-          )}
-
+          ) : (<>
           {actionSection}
+          </>)}
+          
+          
         </div>
       </div>
     </header>

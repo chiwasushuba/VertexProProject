@@ -88,7 +88,7 @@ const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
-      <Header variant="default" location="Login" />
+      <Header variant="default"/>
       <div className="flex flex-1 items-center justify-center py-12 w-full">
         <Card className="max-w-md w-[90%] p-6 md:p-8">
           <CardHeader className="text-center">
