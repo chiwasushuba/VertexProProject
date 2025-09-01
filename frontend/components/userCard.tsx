@@ -31,6 +31,7 @@ const UserCard = ({
   currentUserRole, 
   currentUserId,
   request,
+  company_id,
   onClick
 }: Props) => {
   const router = useRouter()

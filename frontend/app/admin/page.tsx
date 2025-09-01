@@ -182,6 +182,7 @@ const Page = () => {
                   currentUserId={currentUserId}
                   onClick={() => handleOpenProfile(admin.id)}
                   request ={admin.request}
+                  company_id={admin.company_id}
                 />
               ))}
             </div>
@@ -204,8 +205,9 @@ const Page = () => {
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                   onClick={() => handleOpenProfile(user.id)}
-                  request ={user.request} 
-                />
+                  request={user.request}
+                  company_id={user.company_id}                
+                  />
               ))}
             </div>
           </div>
