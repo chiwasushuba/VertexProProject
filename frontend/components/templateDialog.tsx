@@ -8,7 +8,6 @@ import PizZip from 'pizzip'
 import Docxtemplater from 'docxtemplater'
 import api from '@/utils/axios'
 import { useAuthContext } from '@/hooks/useAuthContext'
-import { id } from 'date-fns/locale'
 
 interface TemplateDialogProps {
   requesterId: string
@@ -77,11 +76,12 @@ const TemplateDialog = ({
       // Send to API
       await api.post('/email/send', formData)
 
-      await api.patch(`/user/changerequest/${requesterId}`, {
-        "request": false,
-      })
+      if (requesterId) {
+        await api.patch(`/user/changerequest/${requesterId}`, {
+          "request": false,
+        })
+      }
 
-      alert(requesterId)
       alert('File successfully submitted!')
       setOpen(false)
     } catch (err) {
