@@ -21,7 +21,6 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
 
   const handleLogout = async () => {
     try {
-      // await if logout is async — safe either way
       await logout?.()
     } catch (err) {
       console.error("Logout failed:", err)
@@ -67,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
               alt="VertexPro Logo"
               width={200}
               height={200}
-            /> 
+            />
           </Link>
         </div>
 
@@ -77,8 +76,9 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
           </div>
         )}
 
-        <div className="flex items-end space-x-4">
-          {isAdmin ? (
+        {/* Align action section vertically centered */}
+        <div className="flex items-center space-x-4">
+          {isAdmin && (
             <>
               <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
                 Dashboard
@@ -88,11 +88,9 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
                 Letter
               </Link>
             </>
-          ) : (<>
+          )}
+
           {actionSection}
-          </>)}
-          
-          
         </div>
       </div>
     </header>

@@ -71,7 +71,7 @@ const TemplateDialog = ({
       // Prepare formData
       const formData = new FormData()
       formData.append('to', email)
-      formData.append('file', new File([output], 'FilledTemplate.docx'))
+      formData.append('file', new File([output], 'FilledTemplate.pdf'))
 
       // Send to API
       await api.post('/email/send', formData)
@@ -97,7 +97,7 @@ const TemplateDialog = ({
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>
-            I accept and agree to follow the rules in the video
+            Send Intro Letter
           </DialogTitle>
         </DialogHeader>
 

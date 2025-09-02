@@ -6,6 +6,7 @@ export interface UserType {
   pfp: string;
   verified: boolean;
   role: "user" | "admin" | "superAdmin"
-  request: boolean;
+  requestLetter: boolean;
+  requestId: boolean;
 }
 

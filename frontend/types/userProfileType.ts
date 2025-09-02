@@ -1,4 +1,7 @@
 export type UserProfile = {
+  requestLetter: boolean
+  requestId: boolean
+  company_id: any
   _id: string
   email: string
   role: string

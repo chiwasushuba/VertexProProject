@@ -13,7 +13,6 @@ type Props = UserType & {
   onChangeRole: (id: string, newRole: "user" | "admin" | "superAdmin") => void
   currentUserRole: "user" | "admin" | "superAdmin"
   currentUserId: string
-  request: boolean
   onClick?: () => void   
 }
 
@@ -30,7 +29,8 @@ const UserCard = ({
   onChangeRole,
   currentUserRole, 
   currentUserId,
-  request,
+  requestLetter,
+  requestId,
   company_id,
   onClick
 }: Props) => {
@@ -45,6 +45,16 @@ const UserCard = ({
     } else {
       router.push(`/profile/${id}`)
     }
+  }
+
+  // ✅ Build request message
+  let requestMessage = ""
+  if (requestId && requestLetter) {
+    requestMessage = "Requesting ID and Letter..."
+  } else if (requestId) {
+    requestMessage = "Requesting ID..."
+  } else if (requestLetter) {
+    requestMessage = "Requesting Letter..."
   }
 
   return (
@@ -65,8 +75,9 @@ const UserCard = ({
             {name}
           </CardTitle>
           <p className="text-gray-600">{email}</p>
-          {request && (
-            <p className="text-gray-600 italic">Requesting...</p>
+
+          {requestMessage && (
+            <p className="text-gray-600 italic">{requestMessage}</p>
           )}
         </div>
       </div>

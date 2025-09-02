@@ -31,6 +31,7 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import TemplateDialog from "@/components/templateDialog";
 import EditProfileDialog from "@/components/editProfileDialog";
 import EditPasswordDialog from "@/components/editPassword";
+import SendIdButton from "@/components/sendIdButton";
 
 interface InfoItemProps {
   icon: any; // component
@@ -272,9 +273,8 @@ export default function ProfilePage() {
         return;
       }
 
-      // explicitly send { request: true }
-      await api.patch(`/user/changerequest/${requesterId}`, {
-        request: true
+      await api.patch(`/user/changeRequestLetter/${requesterId}`, {
+        requestLetter: true
       });
 
       alert("Request submitted.");
@@ -283,6 +283,25 @@ export default function ProfilePage() {
       alert("Failed to request letter.");
     }
   };
+
+  const handleRequestId = async () => {
+    try {
+      const requesterId = userInfo?.user?._id;
+      if (!requesterId) {
+        alert("You must be logged in to request a letter.");
+        return;
+      }
+
+      await api.patch(`/user/changeRequestId/${requesterId}`, {
+        requestId: true
+      });
+
+      alert("Request submitted.");
+    } catch (e) {
+      console.error("Error requesting letter:", e);
+      alert("Failed to request letter.");
+    }
+  }
 
 
   // Optimistic delete with auth header, reverts on failure
@@ -358,6 +377,7 @@ export default function ProfilePage() {
     setEditProfileDialogOpen(true);
   };
 
+
   // Prepare dialog props
   const fullName = `${user.firstName ?? ""} ${user.middleName ? user.middleName + " " : ""}${user.lastName ?? ""}`.trim();
   const role = (user.position || user.role || "") as string;
@@ -388,6 +408,7 @@ export default function ProfilePage() {
                 <CardTitle className="text-2xl text-center text-balance">
                   {user.firstName} {user.middleName} {user.lastName}
                 </CardTitle>
+                <p className="text-gray-500 text-lg">{user.company_id}</p>
                 <p className="text-gray-500 text-lg">{user.position}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant={user.verified ? "default" : "secondary"} className="gap-1">
@@ -556,13 +577,26 @@ export default function ProfilePage() {
                 <div className="flex gap-5">
                   {/* Request Letter only for regular users on own profile */}
                   {isOwnProfile ? (
+                    <>
                     <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
                       Request Store Intro Letter
                     </Button>
+
+                    <Button onClick={handleRequestId} className="bg-blue-600 hover:bg-blue-700">
+                      Request Id
+                    </Button>
+                    </>
                   ) : (
-                    <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700">
+                    <div className="flex gap-4">
+                    <Button 
+                      onClick={handleSendLetter} 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={!user.requestLetter}   // ⬅️ disable if not requested
+                    >
                       Send Store Intro Letter
                     </Button>
+                      <SendIdButton requesterId={user._id} disabled={!user.requestId}/>
+                    </div>
                   )}
 
                   {/* Edit Profile only for own profile */}
@@ -584,6 +618,7 @@ export default function ProfilePage() {
                 <EditPasswordDialog _id={user._id} open={editPasswordDialogOpen} setOpen={setEditPasswordDialogOpen} />
               </CardContent>
             </Card>
+
           </div>
         </div>
 

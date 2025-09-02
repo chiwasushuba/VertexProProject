@@ -368,15 +368,14 @@ const changeUserRole = async (req, res) => {
   }
 };
 
-const changeUserRequest = async (req, res) => {
+const changeUserRequestLetter = async (req, res) => {
   try {
     const { id } = req.params;
-    const { request, verify } = req.body; // allow dynamic request/verify fields
+    const { requestLetter } = req.body; // allow dynamic request/verify fields
 
     // Update fields dynamically based on body
     const updateData = {};
-    if (typeof request !== "undefined") updateData.request = request;
-    if (typeof verify !== "undefined") updateData.verify = verify;
+    if (typeof requestLetter !== "undefined") updateData.requestLetter = requestLetter;
 
     const user = await User.findByIdAndUpdate(id, updateData, { new: true });
     if (!user) {
@@ -384,9 +383,36 @@ const changeUserRequest = async (req, res) => {
     }
 
     // Auto-reset request to false after 3 days ONLY if it was set to true
-    if (request === true) {
+    if (requestLetter === true) {
       setTimeout(async () => {
-        await User.findByIdAndUpdate(id, { request: false });
+        await User.findByIdAndUpdate(id, { requestLetter: false });
+      }, 259200000);
+    }
+
+    res.status(200).json({ message: "User updated successfully", user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const changeUserRequestId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { requestId } = req.body;
+
+    // Update fields dynamically based on body
+    const updateData = {};
+    if (typeof requestId !== "undefined") updateData.requestId = requestId;
+
+    const user = await User.findByIdAndUpdate(id, updateData, { new: true });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Auto-reset request to false after 3 days ONLY if it was set to true
+    if (requestId === true) {
+      setTimeout(async () => {
+        await User.findByIdAndUpdate(id, { requestId: false });
       }, 259200000);
     }
 
@@ -459,7 +485,8 @@ module.exports = {
     verifyUser,
     unverifyUser,
     changeUserRole,
-    changeUserRequest,
+    changeUserRequestLetter,
+    changeUserRequestId,
     changeUserPassword,
     getUserTime
 };

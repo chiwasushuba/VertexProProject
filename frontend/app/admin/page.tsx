@@ -45,7 +45,8 @@ const Page = () => {
           pfp: user.profileImage || user.pfp,
           verified: user.verified,
           role: user.role,
-          request: user.request ?? false
+          requestLetter: user.requestLetter ?? false,
+          requestId: user.requestId ?? false
         }))
 
         const normalizedUsers: UserType[] = resUser.data.map((user: any) => ({
@@ -55,7 +56,8 @@ const Page = () => {
           pfp: user.profileImage || user.pfp,
           verified: user.verified,
           role: user.role,
-          request: user.request ?? false
+          requestLetter: user.requestLetter ?? false,
+          requestId: user.requestId ?? false
         }))
 
         setAdmins(normalizedAdmins)
@@ -181,7 +183,8 @@ const Page = () => {
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                   onClick={() => handleOpenProfile(admin.id)}
-                  request ={admin.request}
+                  requestLetter ={admin.requestLetter}
+                  requestId = {admin.requestId}
                   company_id={admin.company_id}
                 />
               ))}
@@ -205,7 +208,8 @@ const Page = () => {
                   currentUserRole={currentUserRole}
                   currentUserId={currentUserId}
                   onClick={() => handleOpenProfile(user.id)}
-                  request={user.request}
+                  requestLetter = {user.requestLetter}
+                  requestId = {user.requestId}
                   company_id={user.company_id}                
                   />
               ))}
