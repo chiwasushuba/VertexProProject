@@ -381,8 +381,6 @@ export default function ProfilePage() {
   // Prepare dialog props
   const fullName = `${user.firstName ?? ""} ${user.middleName ? user.middleName + " " : ""}${user.lastName ?? ""}`.trim();
   const role = (user.position || user.role || "") as string;
-  const startTime = (user as any).startTime || "";
-  const endTime = (user as any).endTime || "";
   const email = user.email || "";
 
   // safe initials

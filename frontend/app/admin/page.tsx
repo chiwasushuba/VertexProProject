@@ -46,7 +46,8 @@ const Page = () => {
           verified: user.verified,
           role: user.role,
           requestLetter: user.requestLetter ?? false,
-          requestId: user.requestId ?? false
+          requestId: user.requestId ?? false,
+          company_id: user.company_id
         }))
 
         const normalizedUsers: UserType[] = resUser.data.map((user: any) => ({
@@ -57,7 +58,8 @@ const Page = () => {
           verified: user.verified,
           role: user.role,
           requestLetter: user.requestLetter ?? false,
-          requestId: user.requestId ?? false
+          requestId: user.requestId ?? false,
+          company_id: user.company_id
         }))
 
         setAdmins(normalizedAdmins)

@@ -74,7 +74,7 @@ const UserCard = ({
           <CardTitle className="text-[1.5rem] font-bold text-gray-800">
             {name}
           </CardTitle>
-          <p className="text-gray-600">{email}</p>
+          <p className="text-gray-600">{email} | {company_id}</p>
 
           {requestMessage && (
             <p className="text-gray-600 italic">{requestMessage}</p>
