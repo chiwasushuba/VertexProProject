@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { RouteGuard } from '../RouteGuard';
 import api from '@/utils/axios';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+
 
 export default function CapturePage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -15,6 +18,7 @@ export default function CapturePage() {
   const [fullAddress, setFullAddress] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLocationReady, setIsLocationReady] = useState(false);
+  
 
   // Start camera
   useEffect(() => {
@@ -193,6 +197,11 @@ export default function CapturePage() {
               <strong>Full Address:</strong>
               <br /> {fullAddress}
             </span>
+            <Link href="/login" passHref>
+              <Button className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                Go to Login
+              </Button>
+            </Link>
           </div>
         )}
       </div>
