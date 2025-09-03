@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     fitToWorkExpirationDate: { type: Date, required: true },
     gcashNumber: { type: Number, required: true },
     gcashName: { type: String, required: true },
+    birthdate: { type: Date, required: true},
     profileImage: { type: String, required: true}, // FILE PATH
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
@@ -33,7 +34,7 @@ userSchema.statics.signup = async function(userData) {
         "email", "password", "firstName", "lastName",
         "gender", "position", "completeAddress", "nbiRegistrationDate",
         "nbiExpirationDate", "fitToWorkExpirationDate",
-        "gcashNumber", "gcashName"
+        "gcashNumber", "gcashName", "birthdate"
     ];
 
     for (const field of requiredFields) {

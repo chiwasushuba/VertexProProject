@@ -22,4 +22,5 @@ export type UserProfile = {
   createdAt: string
   updatedAt: string
   verified: boolean
+  birthdate: string
 }

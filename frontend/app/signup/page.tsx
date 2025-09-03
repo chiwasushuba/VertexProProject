@@ -32,6 +32,7 @@ const SignupPage = () => {
   const [fitToWorkExpirationDate, setFitToWorkExpirationDate] = useState("")
   const [gcashNumber, setGcashNumber] = useState("")
   const [gcashName, setGcashName] = useState("")
+  const [birthdate, setBirthdate] = useState("")   // <-- Added state
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [nbiClearanceFile, setNbiClearanceFile] = useState<File | null>(null)
   const [fitToWorkFile, setFitToWorkFile] = useState<File | null>(null)
@@ -78,6 +79,7 @@ const SignupPage = () => {
       formData.append("fitToWorkExpirationDate", fitToWorkExpirationDate)
       formData.append("gcashNumber", gcashNumber)
       formData.append("gcashName", gcashName)
+      formData.append("birthdate", birthdate)   // <-- Added to formData
       if (profileImage) formData.append("profileImage", profileImage, profileImage.name)
       if (nbiClearanceFile) formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name)
       if (fitToWorkFile) formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name)
@@ -125,6 +127,12 @@ const SignupPage = () => {
                 <Input placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
                 <Input placeholder="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
                 <Input placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+              </div>
+
+              {/* Birthdate */}
+              <div>
+                <Label>Birthdate</Label>
+                <Input type="date" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} required />
               </div>
 
               {/* Email */}

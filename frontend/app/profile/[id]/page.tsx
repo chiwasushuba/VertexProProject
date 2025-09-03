@@ -475,7 +475,7 @@ export default function ProfilePage() {
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoItem icon={Mail} label="Email" value={user.email || ""} />
                 <InfoItem icon={User} label="Gender" value={user.gender || ""} />
-                <InfoItem icon={User} label="Position" value={user.position || ""} />
+                <InfoItem icon={User} label="Position" value={user.birthdate ? new Date(user.birthdate).toLocaleDateString() : ""} />
                 <InfoItem icon={MapPin} label="Address" value={user.completeAddress || ""} />
               </CardContent>
             </Card>

@@ -216,6 +216,7 @@ const signup = async (req, res) => {
       gcashName,
       password,
       role,
+      birthdate
     } = req.body;
 
     if (gcashNumber && isNaN(Number(gcashNumber))) {
@@ -237,6 +238,7 @@ const signup = async (req, res) => {
       email,
       password,
       role: role || "user",
+      birthdate,
       profileImage: uploadedFiles.profileImage,
       nbiClearance: uploadedFiles.nbiClearance,
       fitToWork: uploadedFiles.fitToWork,
