@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     middleName: { type: String, default: '' },
     gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
-    position: {type: String, enum: ["Coordinator", "Sampler", "Helper"], required: true },
+    position: {type: String, enum: ["Coordinator", "Sampler", "Helper", "Brand Ambassador"], required: true },
     completeAddress: { type: String, required: true },
     nbiClearance: { type: String, required: true }, // FILE PATH
     nbiRegistrationDate: { type: Date, required: true },

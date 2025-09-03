@@ -22,7 +22,6 @@ const SignupPage = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [role, setRole] = useState("user")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [middleName, setMiddleName] = useState("")
@@ -69,7 +68,6 @@ const SignupPage = () => {
       const formData = new FormData()
       formData.append("email", email)
       formData.append("password", password)
-      formData.append("role", role)
       formData.append("firstName", firstName)
       formData.append("lastName", lastName)
       formData.append("middleName", middleName)
@@ -197,19 +195,6 @@ const SignupPage = () => {
                 </div>
 
                 <div className="flex flex-col w-full">
-                  <Label className="">Role</Label>
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex flex-col w-full">
                   <Label className="">Position</Label>
                   <Select value={position} onValueChange={setPosition}>
                     <SelectTrigger className="w-full">
@@ -219,6 +204,8 @@ const SignupPage = () => {
                       <SelectItem value="Coordinator">Coordinator</SelectItem>
                       <SelectItem value="Sampler">Sampler</SelectItem>
                       <SelectItem value="Helper">Helper</SelectItem>
+                      <SelectItem value="Brand Ambassador">Brand Ambassador</SelectItem>
+                      
                     </SelectContent>
                   </Select>
                 </div>
@@ -292,7 +279,7 @@ const SignupPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Fit To Work</Label>
+                <Label>Medical Certificate </Label>
                 <Input type="file" accept="image/*" onChange={(e) => setFitToWorkFile(e.target.files?.[0] || null)} />
               </div>
 
