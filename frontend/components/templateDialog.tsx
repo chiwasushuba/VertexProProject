@@ -77,7 +77,7 @@ const TemplateDialog = ({
       await api.post('/email/send', formData)
 
       if (requesterId) {
-        await api.patch(`/user/changerequest/${requesterId}`, {
+        await api.patch(`/user/changeRequestLetter/${requesterId}`, {
           "request": false,
         })
       }
