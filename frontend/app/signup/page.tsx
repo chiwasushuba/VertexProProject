@@ -203,9 +203,9 @@ const SignupPage = () => {
                     <SelectContent>
                       <SelectItem value="Coordinator">Coordinator</SelectItem>
                       <SelectItem value="Sampler">Sampler</SelectItem>
+                      <SelectItem value="Push Girl">Push Girl</SelectItem>
                       <SelectItem value="Helper">Helper</SelectItem>
                       <SelectItem value="Brand Ambassador">Brand Ambassador</SelectItem>
-                      
                     </SelectContent>
                   </Select>
                 </div>
