@@ -47,7 +47,7 @@ const updateUser = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const uploadedFiles = {};
-    const fileFields = ["profileImage", "nbiClearance", "fitToWork"];
+    const fileFields = ["profileImage", "nbiClearance", "fitToWork", "governmentId"];
 
     const uploadToFirebase = (file, folder) => {
       return new Promise((resolve, reject) => {
@@ -95,6 +95,7 @@ const updateUser = async (req, res) => {
       gcashNumber,
       gcashName,
       role,
+      governmentIdType,
     } = req.body;
 
     if (gcashNumber && isNaN(Number(gcashNumber))) {
@@ -114,6 +115,7 @@ const updateUser = async (req, res) => {
       ...(gcashNumber && { gcashNumber }),
       ...(gcashName && { gcashName }),
       ...(role && { role }),
+      ...(governmentIdType && {governmentIdType}),
       ...uploadedFiles, // Add new uploaded files
     };
 
@@ -153,7 +155,7 @@ const signup = async (req, res) => {
 
     const { email } = req.body;
     const uploadedFiles = {};
-    const requiredFiles = ["profileImage", "nbiClearance", "fitToWork"];
+    const requiredFiles = ["profileImage", "nbiClearance", "fitToWork", "governmentId"];
     for (const fileField of requiredFiles) {
       if (!req.files?.[fileField]?.[0]) {
         return res.status(400).json({ error: `${fileField} is required` });
@@ -201,6 +203,10 @@ const signup = async (req, res) => {
       uploadedFiles.fitToWork = await uploadToFirebase(req.files.fitToWork[0], userFolder);
     }
 
+    if (req.files?.governmentId?.[0]) {
+      uploadedFiles.governmentId = await uploadToFirebase(req.files.governmentId[0], userFolder);
+    }
+
     // Extract other body fields
     const {
       firstName,
@@ -216,7 +222,8 @@ const signup = async (req, res) => {
       gcashName,
       password,
       role,
-      birthdate
+      birthdate,
+      governmentIdType
     } = req.body;
 
     if (gcashNumber && isNaN(Number(gcashNumber))) {
@@ -242,6 +249,8 @@ const signup = async (req, res) => {
       profileImage: uploadedFiles.profileImage,
       nbiClearance: uploadedFiles.nbiClearance,
       fitToWork: uploadedFiles.fitToWork,
+      governmentId: uploadedFiles.governmentId,
+      governmentIdType
     });
 
     const token = createToken(user._id);

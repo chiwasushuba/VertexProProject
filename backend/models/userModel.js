@@ -26,7 +26,9 @@ const userSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
     verified: { type: Boolean, default: false },
     requestLetter: { type: Boolean, default: false },
-    requestId: {type: Boolean, default: false}
+    requestId: {type: Boolean, default: false},
+    governmentId: {type: String, required: true}, // FILE PATH
+    governmentIdType: {type: String, enum: ["SSS", "PhilHealth", "UMID", "PhilSys", "Driver's License", "Passport"], required: true}
 });
 
 userSchema.statics.signup = async function(userData) {

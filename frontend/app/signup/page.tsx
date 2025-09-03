@@ -6,8 +6,21 @@ import Header from "@/components/header"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
@@ -33,11 +46,14 @@ const SignupPage = () => {
   const [fitToWorkExpirationDate, setFitToWorkExpirationDate] = useState("")
   const [gcashNumber, setGcashNumber] = useState("")
   const [gcashName, setGcashName] = useState("")
-  const [birthdate, setBirthdate] = useState("") // <-- Added state
+  const [birthdate, setBirthdate] = useState("")
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [nbiClearanceFile, setNbiClearanceFile] = useState<File | null>(null)
   const [fitToWorkFile, setFitToWorkFile] = useState<File | null>(null)
+  const [governmentIdFile, setGovernmentIdFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [governmentIdType, setGovernmentIdType] = useState("")
+
 
   // Backend readiness states
   const [backendReady, setBackendReady] = useState(false)
@@ -79,10 +95,17 @@ const SignupPage = () => {
       formData.append("fitToWorkExpirationDate", fitToWorkExpirationDate)
       formData.append("gcashNumber", gcashNumber)
       formData.append("gcashName", gcashName)
-      formData.append("birthdate", birthdate) // <-- Added to formData
-      if (profileImage) formData.append("profileImage", profileImage, profileImage.name)
-      if (nbiClearanceFile) formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name)
-      if (fitToWorkFile) formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name)
+      formData.append("birthdate", birthdate)
+      formData.append("governmentIdType", governmentIdType)
+
+      if (profileImage)
+        formData.append("profileImage", profileImage, profileImage.name)
+      if (nbiClearanceFile)
+        formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name)
+      if (fitToWorkFile)
+        formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name)
+      if (governmentIdFile)
+        formData.append("governmentId", governmentIdFile, governmentIdFile.name)
 
       const res = await signup(formData)
 
@@ -104,7 +127,9 @@ const SignupPage = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-white mx-auto mb-4"></div>
           <p className="text-white text-lg font-semibold">
-            {checkingBackend ? "Checking server..." : "Server not ready, retrying..."}
+            {checkingBackend
+              ? "Checking server..."
+              : "Server not ready, retrying..."}
           </p>
         </div>
       </div>
@@ -118,7 +143,9 @@ const SignupPage = () => {
         <Card className="max-w-3xl w-[90%] p-6 md:p-8">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Sign Up</CardTitle>
-            <CardDescription>Enter your details to create an account.</CardDescription>
+            <CardDescription>
+              Enter your details to create an account.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-6">
@@ -130,7 +157,11 @@ const SignupPage = () => {
                   onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
-                <Input placeholder="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+                <Input
+                  placeholder="Middle Name"
+                  value={middleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
+                />
                 <Input
                   placeholder="Last Name"
                   value={lastName}
@@ -142,7 +173,12 @@ const SignupPage = () => {
               {/* Birthdate */}
               <div>
                 <Label>Birthdate</Label>
-                <Input type="date" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} required />
+                <Input
+                  type="date"
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
+                  required
+                />
               </div>
 
               {/* Email */}
@@ -179,10 +215,10 @@ const SignupPage = () => {
                 </div>
               )}
 
-              {/* Gender + Role + Position */}
+              {/* Gender + Position */}
               <div className="flex flex-col md:flex-row gap-2">
                 <div className="flex flex-col w-full">
-                  <Label className="">Gender</Label>
+                  <Label>Gender</Label>
                   <Select value={gender} onValueChange={setGender}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Gender" />
@@ -195,7 +231,7 @@ const SignupPage = () => {
                 </div>
 
                 <div className="flex flex-col w-full">
-                  <Label className="">Position</Label>
+                  <Label>Position</Label>
                   <Select value={position} onValueChange={setPosition}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Position" />
@@ -205,7 +241,9 @@ const SignupPage = () => {
                       <SelectItem value="Sampler">Sampler</SelectItem>
                       <SelectItem value="Push Girl">Push Girl</SelectItem>
                       <SelectItem value="Helper">Helper</SelectItem>
-                      <SelectItem value="Brand Ambassador">Brand Ambassador</SelectItem>
+                      <SelectItem value="Brand Ambassador">
+                        Brand Ambassador
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -243,25 +281,60 @@ const SignupPage = () => {
                   <Input
                     type="date"
                     value={fitToWorkExpirationDate}
-                    onChange={(e) => setFitToWorkExpirationDate(e.target.value)}
+                    onChange={(e) =>
+                      setFitToWorkExpirationDate(e.target.value)
+                    }
                     required
                   />
                 </div>
               </div>
 
               {/* GCash */}
-              <Input placeholder="GCash Number" value={gcashNumber} onChange={(e) => setGcashNumber(e.target.value)} />
-              <Input placeholder="GCash Name" value={gcashName} onChange={(e) => setGcashName(e.target.value)} />
+              <Input
+                placeholder="GCash Number"
+                value={gcashNumber}
+                onChange={(e) => setGcashNumber(e.target.value)}
+              />
+              <Input
+                placeholder="GCash Name"
+                value={gcashName}
+                onChange={(e) => setGcashName(e.target.value)}
+              />
+
+              <div className="space-y-2">
+                <Label>Government ID Type</Label>
+                <Select value={governmentIdType} onValueChange={setGovernmentIdType}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select ID Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Driver's License">Driver's License</SelectItem>
+                    <SelectItem value="Passport">Passport</SelectItem>
+                    <SelectItem value="SSS">SSS</SelectItem>
+                    <SelectItem value="PhilHealth">PhilHealth</SelectItem>
+                    <SelectItem value="UMID">UMID</SelectItem>
+                    <SelectItem value="Voter's ID">Voter's ID</SelectItem>
+                    <SelectItem value="TIN">TIN</SelectItem>
+                    <SelectItem value="Others">Others</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Profile Image with Preview */}
               <div className="space-y-2">
                 <Label>Profile Image</Label>
-                <Input type="file" accept="image/*" onChange={(e) => setProfileImage(e.target.files?.[0] || null)} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setProfileImage(e.target.files?.[0] || null)
+                  }
+                />
                 {profileImage && (
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">Preview:</p>
                     <img
-                      src={URL.createObjectURL(profileImage) || "/placeholder.svg"}
+                      src={URL.createObjectURL(profileImage)}
                       alt="Profile Preview"
                       className="mt-1 h-32 w-32 object-cover rounded-full border"
                     />
@@ -274,23 +347,49 @@ const SignupPage = () => {
                 <Input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setNbiClearanceFile(e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    setNbiClearanceFile(e.target.files?.[0] || null)
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Medical Certificate </Label>
-                <Input type="file" accept="image/*" onChange={(e) => setFitToWorkFile(e.target.files?.[0] || null)} />
+                <Label>Medical Certificate</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFitToWorkFile(e.target.files?.[0] || null)
+                  }
+                />
               </div>
 
-              <Button type="submit" className="w-full bg-primary" disabled={isSubmitting}>
+              <div className="space-y-2">
+                <Label>Government ID</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setGovernmentIdFile(e.target.files?.[0] || null)
+                  }
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-primary"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Submitting..." : "Sign Up"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="justify-center text-sm text-muted-foreground">
             Already have an account?
-            <Link href="/login" className="ml-1 text-primary underline underline-offset-2">
+            <Link
+              href="/login"
+              className="ml-1 text-primary underline underline-offset-2"
+            >
               Login
             </Link>
           </CardFooter>

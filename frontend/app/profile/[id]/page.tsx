@@ -25,6 +25,7 @@ import {
   MapPin,
   Mail,
   Trash2,
+  IdCard
 } from "lucide-react";
 import type { UserProfile } from "@/types/userProfileType";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -497,7 +498,12 @@ export default function ProfilePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <img src={user.nbiClearance || "/placeholder.svg"} alt="NBI" className="w-full h-32 object-cover rounded-lg border" />
+                    <img
+                      src={user.nbiClearance || "/placeholder.svg"}
+                      alt="NBI"
+                      className="w-full max-h-150  object-contain rounded-lg border bg-white"
+                      style={{ width: "100%", height: "auto" }}
+                    />
                     </div>
                     <div className="space-y-2">
                       <InfoItem
@@ -516,6 +522,33 @@ export default function ProfilePage() {
 
                 <Separator />
 
+                {/* Government Id */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-4 w-4 text-green-600" />
+                    <h3 className="font-semibold">Government ID</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <img
+                        src={user.governmentId || "/placeholder.svg"}
+                        alt="Government ID"
+                        className="w-full max-h-150 object-contain rounded-lg border bg-white"
+                        style={{ width: "100%", height: "auto" }}
+                      />
+                    </div>
+                    <div>
+                      <InfoItem
+                        icon={IdCard}
+                        label="Expiration Date"
+                        value={user.governmentIdType}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
                 {/* Fit to Work */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
@@ -524,7 +557,12 @@ export default function ProfilePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <img src={user.fitToWork || "/placeholder.svg"} alt="Fit to work" className="w-full h-32 object-cover rounded-lg border" />
+                      <img
+                        src={user.fitToWork || "/placeholder.svg"}
+                        alt="Fit to work"
+                        className="w-full max-h-150 object-contain rounded-lg border bg-white"
+                        style={{ width: "100%", height: "auto" }}
+                      />
                     </div>
                     <div>
                       <InfoItem

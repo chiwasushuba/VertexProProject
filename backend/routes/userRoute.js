@@ -29,6 +29,7 @@ router.post(
     { name: "profileImage", maxCount: 1 },
     { name: "nbiClearance", maxCount: 1 },
     { name: "fitToWork", maxCount: 1 },
+    { name: "governmentId", maxCount: 1}
   ]),
   signup
 );
