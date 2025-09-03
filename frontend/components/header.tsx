@@ -62,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
           <Link href="/" className="flex items-center gap-2">
             <img
               // NOTE: use the correct URL for your storage; this one uses appspot.com
-              src="https://firebasestorage.googleapis.com/v0/b/vertexpro-inc-fcef5.firebasestorage.app/o/vertexpro.picture.png?alt=media&token=1f5e69ad-c98a-4684-ab54-1dd2a2b17c05"
+              src="/vertexproLogo.png"
               alt="VertexPro Logo"
               width={200}
               height={200}
