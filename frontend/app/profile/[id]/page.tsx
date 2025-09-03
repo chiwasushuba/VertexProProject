@@ -571,42 +571,45 @@ export default function ProfilePage() {
               <CardHeader>
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
-              <CardContent className="flex justify-between items-center">
-                <div className="flex gap-5">
+              <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 w-full sm:w-auto">
                   {/* Request Letter only for regular users on own profile */}
                   {isOwnProfile ? (
                     <>
-                    <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700">
-                      Request Store Intro Letter
-                    </Button>
+                      <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                        Request Store Intro Letter
+                      </Button>
 
-                    <Button onClick={handleRequestId} className="bg-blue-600 hover:bg-blue-700">
-                      Request Id
-                    </Button>
+                      <Button onClick={handleRequestId} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                        Request Id
+                      </Button>
                     </>
                   ) : (
-                    <div className="flex gap-4">
-                    <Button 
-                      onClick={handleSendLetter} 
-                      className="bg-blue-600 hover:bg-blue-700"
-                      disabled={!user.requestLetter}   // ⬅️ disable if not requested
-                    >
-                      Send Store Intro Letter
-                    </Button>
-                      <SendIdButton requesterId={user._id} disabled={!user.requestId}/>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                      <Button
+                        onClick={handleSendLetter}
+                        className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                        disabled={!user.requestLetter} // ⬅️ disable if not requested
+                      >
+                        Send Store Intro Letter
+                      </Button>
+                      <SendIdButton requesterId={user._id} disabled={!user.requestId} />
                     </div>
                   )}
 
                   {/* Edit Profile only for own profile */}
                   {isOwnProfile && (
-                    <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700">
+                    <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                       Edit Profile
                     </Button>
                   )}
 
                   {/* Change/Reset Password button shown only when allowed by rules */}
                   {canChangePassword && (
-                    <Button onClick={() => setEditPasswordDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Button
+                      onClick={() => setEditPasswordDialogOpen(true)}
+                      className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                    >
                       {isOwnProfile ? "Change Password" : "Reset Password"}
                     </Button>
                   )}
@@ -616,7 +619,6 @@ export default function ProfilePage() {
                 <EditPasswordDialog _id={user._id} open={editPasswordDialogOpen} setOpen={setEditPasswordDialogOpen} />
               </CardContent>
             </Card>
-
           </div>
         </div>
 
