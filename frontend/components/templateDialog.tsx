@@ -71,7 +71,7 @@ const TemplateDialog = ({
       // Prepare formData
       const formData = new FormData()
       formData.append('to', email)
-      formData.append('file', new File([output], 'FilledTemplate.pdf'))
+      formData.append('file', new File([output], 'FilledTemplate.docx'))
 
       // Send to API
       await api.post('/email/send', formData)
