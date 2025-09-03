@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import Header from "@/components/header"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +12,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useSignup } from '@/hooks/useSignup'
+import { useSignup } from "@/hooks/useSignup"
 import api from "@/utils/axios"
 
 const SignupPage = () => {
@@ -32,7 +34,7 @@ const SignupPage = () => {
   const [fitToWorkExpirationDate, setFitToWorkExpirationDate] = useState("")
   const [gcashNumber, setGcashNumber] = useState("")
   const [gcashName, setGcashName] = useState("")
-  const [birthdate, setBirthdate] = useState("")   // <-- Added state
+  const [birthdate, setBirthdate] = useState("") // <-- Added state
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [nbiClearanceFile, setNbiClearanceFile] = useState<File | null>(null)
   const [fitToWorkFile, setFitToWorkFile] = useState<File | null>(null)
@@ -79,7 +81,7 @@ const SignupPage = () => {
       formData.append("fitToWorkExpirationDate", fitToWorkExpirationDate)
       formData.append("gcashNumber", gcashNumber)
       formData.append("gcashName", gcashName)
-      formData.append("birthdate", birthdate)   // <-- Added to formData
+      formData.append("birthdate", birthdate) // <-- Added to formData
       if (profileImage) formData.append("profileImage", profileImage, profileImage.name)
       if (nbiClearanceFile) formData.append("nbiClearance", nbiClearanceFile, nbiClearanceFile.name)
       if (fitToWorkFile) formData.append("fitToWork", fitToWorkFile, fitToWorkFile.name)
@@ -115,7 +117,7 @@ const SignupPage = () => {
     <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
       <Header variant="default" />
       <main className="flex flex-1 items-center justify-center py-12">
-        <Card className="max-w-3xl w-[80%] p-6 md:p-8">
+        <Card className="max-w-3xl w-[90%] p-6 md:p-8">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Sign Up</CardTitle>
             <CardDescription>Enter your details to create an account.</CardDescription>
@@ -124,9 +126,19 @@ const SignupPage = () => {
             <form onSubmit={handleSubmit} className="grid gap-6">
               {/* Name Fields */}
               <div className="flex gap-2">
-                <Input placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                <Input
+                  placeholder="First Name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
                 <Input placeholder="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
-                <Input placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                <Input
+                  placeholder="Last Name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
               </div>
 
               {/* Birthdate */}
@@ -136,7 +148,13 @@ const SignupPage = () => {
               </div>
 
               {/* Email */}
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
 
               {/* Password with toggle */}
               <div className="relative">
@@ -164,49 +182,83 @@ const SignupPage = () => {
               )}
 
               {/* Gender + Role + Position */}
-              <div className="grid grid-cols-3 gap-2">
-                <Select value={gender} onValueChange={setGender}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Select Gender" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col md:flex-row gap-2">
+                <div className="flex flex-col w-full">
+                  <Label className="">Gender</Label>
+                  <Select value={gender} onValueChange={setGender}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Role" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col w-full">
+                  <Label className="">Role</Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Select value={position} onValueChange={setPosition}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Position" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Coordinator">Coordinator</SelectItem>
-                    <SelectItem value="Sampler">Sampler</SelectItem>
-                    <SelectItem value="Helper">Helper</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col w-full">
+                  <Label className="">Position</Label>
+                  <Select value={position} onValueChange={setPosition}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Position" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Coordinator">Coordinator</SelectItem>
+                      <SelectItem value="Sampler">Sampler</SelectItem>
+                      <SelectItem value="Helper">Helper</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Address */}
-              <Input placeholder="Complete Address" value={completeAddress} onChange={(e) => setCompleteAddress(e.target.value)} />
+              <Input
+                placeholder="Complete Address"
+                value={completeAddress}
+                onChange={(e) => setCompleteAddress(e.target.value)}
+              />
 
               {/* Dates */}
-              <div className="grid grid-cols-3 gap-2">
-                <div>
+              <div className="flex flex-col md:flex-row gap-2">
+                <div className="w-full">
                   <Label>NBI Registration Date</Label>
-                  <Input type="date" value={nbiRegistrationDate} onChange={(e) => setNbiRegistrationDate(e.target.value)} required/>
+                  <Input
+                    type="date"
+                    value={nbiRegistrationDate}
+                    onChange={(e) => setNbiRegistrationDate(e.target.value)}
+                    required
+                  />
                 </div>
-                <div>
+                <div className="w-full">
                   <Label>NBI Expiration Date</Label>
-                  <Input type="date" value={nbiExpirationDate} onChange={(e) => setNbiExpirationDate(e.target.value)} required/>
+                  <Input
+                    type="date"
+                    value={nbiExpirationDate}
+                    onChange={(e) => setNbiExpirationDate(e.target.value)}
+                    required
+                  />
                 </div>
-                <div>
+                <div className="w-full">
                   <Label>Fit-to-Work Expiration</Label>
-                  <Input type="date" value={fitToWorkExpirationDate} onChange={(e) => setFitToWorkExpirationDate(e.target.value)} required/>
+                  <Input
+                    type="date"
+                    value={fitToWorkExpirationDate}
+                    onChange={(e) => setFitToWorkExpirationDate(e.target.value)}
+                    required
+                  />
                 </div>
               </div>
 
@@ -222,7 +274,7 @@ const SignupPage = () => {
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">Preview:</p>
                     <img
-                      src={URL.createObjectURL(profileImage)}
+                      src={URL.createObjectURL(profileImage) || "/placeholder.svg"}
                       alt="Profile Preview"
                       className="mt-1 h-32 w-32 object-cover rounded-full border"
                     />
@@ -232,7 +284,11 @@ const SignupPage = () => {
 
               <div className="space-y-2">
                 <Label>NBI Clearance</Label>
-                <Input type="file" accept="image/*" onChange={(e) => setNbiClearanceFile(e.target.files?.[0] || null)} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setNbiClearanceFile(e.target.files?.[0] || null)}
+                />
               </div>
 
               <div className="space-y-2">
@@ -247,7 +303,9 @@ const SignupPage = () => {
           </CardContent>
           <CardFooter className="justify-center text-sm text-muted-foreground">
             Already have an account?
-            <Link href="/login" className="ml-1 text-primary underline underline-offset-2">Login</Link>
+            <Link href="/login" className="ml-1 text-primary underline underline-offset-2">
+              Login
+            </Link>
           </CardFooter>
         </Card>
       </main>
