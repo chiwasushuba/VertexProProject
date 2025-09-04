@@ -68,12 +68,24 @@ const LetterPage: React.FC = () => {
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       })
 
-      saveAs(output, "GeneratedTemplate.docx")
+      // Detect if device is mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        // Open file in new tab for mobile
+        const url = URL.createObjectURL(output)
+        window.open(url, "_blank")
+        setTimeout(() => URL.revokeObjectURL(url), 5000) // cleanup
+      } else {
+        // Desktop: trigger download
+        saveAs(output, "GeneratedTemplate.docx")
+      }
     } catch (error) {
       console.error("Document generation error:", error)
       alert("Failed to generate document. Check template link or placeholders.")
     }
   }
+
 
   const renderDatePicker = (
     label: string,
