@@ -102,7 +102,7 @@ const TemplateDialog = ({
         </DialogHeader>
 
         <div className="flex flex-col space-y-4 justify-center">
-          <Label>Upload Template File</Label>
+          <Label>Upload Template File Below</Label>
           <input type="file" accept=".docx" onChange={handleFileChange} />
           <Button
             className="w-full mt-4"
