@@ -72,9 +72,13 @@ const LetterPage: React.FC = () => {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
       if (isMobile) {
-        // Open file in new tab for mobile
         const url = URL.createObjectURL(output)
-        window.open(url, "_blank")
+        const link = document.createElement("a")
+        link.href = url
+        link.download = "GeneratedTemplate.docx"  // ✅ force filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
         setTimeout(() => URL.revokeObjectURL(url), 5000) // cleanup
       } else {
         // Desktop: trigger download
