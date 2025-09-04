@@ -78,7 +78,7 @@ const TemplateDialog = ({
 
       if (requesterId) {
         await api.patch(`/user/changeRequestLetter/${requesterId}`, {
-          "request": false,
+          "requestLetter": false,
         })
       }
 
