@@ -53,21 +53,34 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
     )
   }
 
-  const isAdmin = !!(userInfo?.user?.role && (userInfo.user.role === 'admin' || userInfo.user.role === 'superAdmin'))
+  const isAdmin = !!(
+    userInfo?.user?.role &&
+    (userInfo.user.role === "admin" || userInfo.user.role === "superAdmin")
+  )
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-gray-800 mb-4">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-2 font-semibold text-primary-foreground">
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              // NOTE: use the correct URL for your storage; this one uses appspot.com
-              src="/vertexproLogo.png"
-              alt="VertexPro Logo"
-              width={200}
-              height={200}
-            />
-          </Link>
+          {location === "Watch Page" ? (
+            <div className="flex items-center gap-2">
+              <img
+                src="/vertexproLogo.png"
+                alt="VertexPro Logo"
+                width={200}
+                height={200}
+              />
+            </div>
+          ) : (
+            <Link href="/" className="flex items-center gap-2">
+              <img
+                src="/vertexproLogo.png"
+                alt="VertexPro Logo"
+                width={200}
+                height={200}
+              />
+            </Link>
+          )}
         </div>
 
         {location && (
@@ -80,11 +93,17 @@ const Header: React.FC<HeaderProps> = ({ variant = "default", location }) => {
         <div className="flex items-center space-x-4">
           {isAdmin && (
             <>
-              <Link href={"/admin"} className="flex items-center gap-2 font-semibold text-primary-foreground">
+              <Link
+                href={"/admin"}
+                className="flex items-center gap-2 font-semibold text-primary-foreground"
+              >
                 Dashboard
               </Link>
               <span className="text-primary-foreground">|</span>
-              <Link href={"/letter"} className="flex items-center gap-2 font-semibold text-primary-foreground">
+              <Link
+                href={"/letter"}
+                className="flex items-center gap-2 font-semibold text-primary-foreground"
+              >
                 Letter
               </Link>
             </>

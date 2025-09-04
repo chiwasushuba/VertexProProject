@@ -44,7 +44,7 @@ const NavigationDialog = ({ open }: NavigationDialogProps) => {
             onClick={handleWatchVideo}
           >
             <MonitorPlay className="w-6 h-6" />
-            <span className="text-sm font-medium">Go to Watch</span>
+            <span className="text-sm font-medium">Go to Orientation</span>
           </Button>
 
           {/* Timestamp Camera */}

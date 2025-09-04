@@ -72,7 +72,7 @@ const WatchPage = () => {
   return (
     <RouteGuard>
       <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
-        <Header variant="signedUser" location="Man Power Orientation" />
+        <Header variant="signedUser" location="Watch Page" />
 
         <main className="flex flex-col flex-1 justify-center items-center gap-8 px-4 py-10">
           {/* Tabs Section */}
