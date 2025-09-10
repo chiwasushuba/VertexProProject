@@ -6,20 +6,25 @@ const timestampSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  type: {
+    type: String,
+    enum: ['in', 'out'],
+    required: true
+  },
   pictures: [{
-    type: String, 
+    type: String,
   }],
   createdAt: {
     type: Date,
     default: Date.now
   },
-  expiresAt: { // new field
+  expiresAt: {
     type: Date,
-    default: () => Date.now() + 7*24*60*60*1000 // 7 days from now
+    default: () => Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
   }
 });
 
-// Time To Live Index, mongoDB automatically deletes after expiresAt
+// TTL index
 timestampSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('Timestamp', timestampSchema);

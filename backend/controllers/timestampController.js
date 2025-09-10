@@ -1,25 +1,54 @@
 const { bucket } = require('../utils/firebase');
 const Timestamp = require('../models/timestampModel');
 
-const getTimestamps = async (req, res) => {
+// ======================
+// GET FUNCTIONS
+// ======================
+
+const getTimestampsOut = async (req, res) => {
   try {
-    const timestamps = await Timestamp.find().sort({ createdAt: -1 });
+    const timestamps = await Timestamp.find({ type: 'out' }).sort({ createdAt: -1 });
     res.status(200).json(timestamps);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-const uploadImage = async (req, res) => {
+const getTimestampsIn = async (req, res) => {
+  try {
+    const timestamps = await Timestamp.find({ type: 'in' }).sort({ createdAt: -1 });
+    res.status(200).json(timestamps);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getTimestampsOfUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const timestamps = await Timestamp.find({ user: userId }).sort({ createdAt: -1 });
+    res.status(200).json(timestamps);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ======================
+// UPLOAD FUNCTIONS
+// ======================
+
+const uploadTimestamp = async (req, res, type) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image uploaded' });
     }
 
-    const email = req.user.email; 
+    const email = req.user.email;
     const file = req.file;
-    const userId = req.user._id; // Get user ID from auth middleware
-    const folderName = `users/${email}/uploads/`;
+    const userId = req.user._id;
+
+    // Separate folders for in/out
+    const folderName = `users/${email}/uploads/${type}/`;
     const fileName = `${folderName}${Date.now()}-${file.originalname}`;
     const blob = bucket.file(fileName);
 
@@ -36,17 +65,12 @@ const uploadImage = async (req, res) => {
         await blob.makePublic();
         const pictureUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
-        // Find or create Timestamp document for this user
-        let timestampDoc = await Timestamp.findOne({ user: userId });
-        if (!timestampDoc) {
-          timestampDoc = await Timestamp.create({
-            user: userId,
-            pictures: [pictureUrl],
-          });
-        } else {
-          timestampDoc.pictures.push(pictureUrl);
-          await timestampDoc.save();
-        }
+        // Create new timestamp doc
+        const timestampDoc = await Timestamp.create({
+          user: userId,
+          type,
+          pictures: [pictureUrl],
+        });
 
         res.status(201).json({ timestampDoc, pictureUrl });
       } catch (error) {
@@ -60,27 +84,35 @@ const uploadImage = async (req, res) => {
   }
 };
 
+const uploadTimestampIn = (req, res) => uploadTimestamp(req, res, 'in');
+const uploadTimestampOut = (req, res) => uploadTimestamp(req, res, 'out');
+
+// ======================
+// DELETE FUNCTIONS
+// ======================
+
 const deleteSingleImage = async (req, res) => {
   try {
-
     const timestampId = req.params.id;
-    const { imageUrl } = req.body; // Pass both in request body
+    const { imageUrl } = req.body; // must pass imageUrl in body
 
     const timestamp = await Timestamp.findById(timestampId);
     if (!timestamp) {
       return res.status(404).json({ error: 'Timestamp not found' });
     }
 
-    // Remove image from array
+    // Remove from array
     const index = timestamp.pictures.indexOf(imageUrl);
     if (index === -1) {
       return res.status(404).json({ error: 'Image not found in array' });
     }
     timestamp.pictures.splice(index, 1);
 
-    // Delete image from Firebase Storage
+    // Extract the relative path from Firebase URL
     const path = imageUrl.split(`/${bucket.name}/`)[1];
-    await bucket.file(path).delete();
+    if (path) {
+      await bucket.file(path).delete();
+    }
 
     await timestamp.save();
 
@@ -89,7 +121,6 @@ const deleteSingleImage = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 const deleteImage = async (req, res) => {
   try {
@@ -103,7 +134,9 @@ const deleteImage = async (req, res) => {
     // Delete files from Firebase
     for (const picUrl of timestamp.pictures) {
       const path = picUrl.split(`/${bucket.name}/`)[1];
-      await bucket.file(path).delete();
+      if (path) {
+        await bucket.file(path).delete();
+      }
     }
 
     // Delete Mongo doc
@@ -115,21 +148,16 @@ const deleteImage = async (req, res) => {
   }
 };
 
-const getTimestampsOfUser = async (req, res) => {
-  try {
-    const userId = req.params.id; // Get user ID from auth middleware
-    const timestamps = await Timestamp.find({ user: userId }).sort({ createdAt: -1 });
-    res.status(200).json(timestamps);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
+// ======================
+// EXPORTS
+// ======================
 
 module.exports = {
-  getTimestamps,
-  uploadImage,
-  deleteImage,
+  getTimestampsOut,
+  getTimestampsIn,
   getTimestampsOfUser,
-  deleteSingleImage
+  uploadTimestampIn,
+  uploadTimestampOut,
+  deleteSingleImage,
+  deleteImage,
 };

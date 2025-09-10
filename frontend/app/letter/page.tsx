@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import PizZip from "pizzip"
 import Docxtemplater from "docxtemplater"
 import { saveAs } from "file-saver"
-import { format } from "date-fns"
+import { format, parse } from "date-fns" // added parse
 import { CalendarIcon } from "lucide-react"
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
@@ -12,8 +12,9 @@ import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import Header from "@/components/header"
 import { RouteGuard } from "../RouteGuard"
+import { useAuthContext } from "@/hooks/useAuthContext";
 
-const TEMPLATE_URL = "/templateWord.docx" 
+const TEMPLATE_URL = "/templateWord.docx"
 
 const LetterPage: React.FC = () => {
   const [form, setForm] = useState({
@@ -25,7 +26,12 @@ const LetterPage: React.FC = () => {
     dateEnd: "",
     startTime: "",
     endTime: "",
+    numDay: ""
   })
+
+  const { userInfo } = useAuthContext();
+
+  console.log(userInfo)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -42,9 +48,43 @@ const LetterPage: React.FC = () => {
     })
   }
 
+  // convert "HH:mm" -> "h:mm a" e.g. "13:30" -> "1:30 PM"
+  const formatTimeWithAmPm = (rawTime: string): string => {
+    if (!rawTime) return ""
+    try {
+      const parsed = parse(rawTime, "HH:mm", new Date())
+      return format(parsed, "h:mm a")
+    } catch (e) {
+      return rawTime
+    }
+  }
+
+  // compute inclusive number of days between start and end (same day => 1)
+  const computeNumDays = (startRaw: string, endRaw: string): number | null => {
+    if (!startRaw || !endRaw) return null
+    const start = new Date(startRaw)
+    const end = new Date(endRaw)
+    // invalid dates?
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return null
+    // if end before start, return null so we can surface an error
+    if (end < start) return null
+    const diffMs = end.getTime() - start.getTime()
+    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000))
+    return diffDays + 1 // inclusive
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      // Validate dates
+      if (form.dateStart && form.dateEnd) {
+        const ndays = computeNumDays(form.dateStart, form.dateEnd)
+        if (ndays === null) {
+          alert("End date must be the same or after the start date.")
+          return
+        }
+      }
+
       const response = await fetch(TEMPLATE_URL)
       if (!response.ok) throw new Error("Failed to fetch template file")
 
@@ -52,11 +92,19 @@ const LetterPage: React.FC = () => {
       const zip = new PizZip(arrayBuffer)
       const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true })
 
+      // compute formatted times and numDay
+      const formattedStartTime = formatTimeWithAmPm(form.startTime)
+      const formattedEndTime = formatTimeWithAmPm(form.endTime)
+      const numDayVal = computeNumDays(form.dateStart, form.dateEnd)
+
       const formattedData = {
         ...form,
         dateToday: formatDate(form.dateToday),
         dateStart: formatDate(form.dateStart),
         dateEnd: formatDate(form.dateEnd),
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        numDay: numDayVal !== null ? String(numDayVal) : ""
       }
 
       doc.setData(formattedData)
@@ -75,14 +123,14 @@ const LetterPage: React.FC = () => {
         const url = URL.createObjectURL(output)
         const link = document.createElement("a")
         link.href = url
-        link.download = "GeneratedTemplate.docx"  // ✅ force filename
+        link.download = `${userInfo.user.firstName}_${userInfo.user.lastName}_letter.docx`  // ✅ force filename
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         setTimeout(() => URL.revokeObjectURL(url), 5000) // cleanup
       } else {
         // Desktop: trigger download
-        saveAs(output, "GeneratedTemplate.docx")
+        saveAs(output, `${userInfo.user.firstName}_${userInfo.user.lastName}_letter.docx`) // ✅ force filename
       }
     } catch (error) {
       console.error("Document generation error:", error)
@@ -137,7 +185,7 @@ const LetterPage: React.FC = () => {
   }
 
   return (
-    <RouteGuard allowedRoles={['admin','superAdmin']}>
+    <RouteGuard allowedRoles={['admin', 'superAdmin']}>
       <div className="flex min-h-screen min-w-screen flex-col items-center bg-gradient-to-br from-[#3f5a36] via-[#5f725d] to-[#374f2f]">
         <Header variant="signedUser" />
         <div className="flex flex-col items-center p-4 w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] xl:w-[50vw] mx-auto">
@@ -160,6 +208,7 @@ const LetterPage: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full border p-2 rounded"
                 />
+                <p className="text-sm text-gray-500 mt-1">{formatTimeWithAmPm(form.startTime) || "—"}</p>
               </div>
               <div className="flex flex-col items-start">
                 <h3 className="font-medium mb-1">End Time</h3>
@@ -170,6 +219,7 @@ const LetterPage: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full border p-2 rounded"
                 />
+                <p className="text-sm text-gray-500 mt-1">{formatTimeWithAmPm(form.endTime) || "—"}</p>
               </div>
             </div>
             <div className="flex flex-col items-start">
@@ -202,6 +252,7 @@ const LetterPage: React.FC = () => {
                 className="w-full border p-2 rounded"
               />
             </div>
+
             <div className="flex flex-col items-start">
               <button
                 type="submit"

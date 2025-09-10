@@ -12,7 +12,6 @@ import { useAuthContext } from '@/hooks/useAuthContext'
 interface TemplateDialogProps {
   requesterId: string
   name: string
-  role: string
   email: string
   open: boolean
   setOpen: (open: boolean) => void
@@ -21,13 +20,13 @@ interface TemplateDialogProps {
 const TemplateDialog = ({
   requesterId,
   name,
-  role,
   email,
   open,
   setOpen,
 }: TemplateDialogProps) => {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const [role, setRole] = useState('')
   const { userInfo } = useAuthContext() // ✅ get logged-in user
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,8 +54,8 @@ const TemplateDialog = ({
 
       // Insert placeholders
       doc.setData({
-        userName: name,
-        userRole: role,
+        name: name,
+        role: role,
       })
 
       doc.render()
@@ -104,6 +103,8 @@ const TemplateDialog = ({
         <div className="flex flex-col space-y-4 justify-center">
           <Label>Upload Template File Below</Label>
           <input type="file" accept=".docx" onChange={handleFileChange} />
+          <Label>Enter Role for: {name}</Label>
+          <input placeholder='Input Role' value={role} onChange={(e) => setRole(e.target.value)} className='border border-solid rounded-md' />
           <Button
             className="w-full mt-4"
             onClick={handleSubmit}

@@ -4,7 +4,7 @@ const Email = require('../models/emailModel');
 const sendEmail = async (req, res) => {
   const { to } = req.body;
 
-  const subject = "Store Intro Letter from Vertex Pro Inc.";
+  const subject = "Store Intro Letter from VertexPro";
   const text = "This is the store intro letter that you requested. Please find the attached document for more details.";
   const html = "<p>This is the store intro letter that you requested. Please find the attached document for more details.</p>";
   const file = req.file; // Multer stores file here
@@ -71,9 +71,11 @@ const sendEmail = async (req, res) => {
 const sendId = async (req, res) => {
   const { to } = req.body;
 
-  const subject = "ID Card from Vertex Pro Inc.";
+  const subject = "ID Card from VertexPro";
   const text = "This is the ID card that you requested. Please find the attached document for more details.";
-  const html = "<p>This is the ID card that you requested. Please find the attached document for more details.</p>";
+  const html = `<p>This is the ID card that you requested. Please find the attached document for more details.</p><br/>
+  <p>Please have your ID printed as size CR80 2.125' x 3.375'. Ensure to insert your 1 x 1 photo and have it laminated.</p>
+  `;
   const file = req.file; // Multer stores file here
 
   try {

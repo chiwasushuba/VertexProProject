@@ -18,7 +18,7 @@ export default function CapturePage() {
   const [fullAddress, setFullAddress] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLocationReady, setIsLocationReady] = useState(false);
-  
+
 
   // Start camera
   useEffect(() => {
@@ -164,11 +164,10 @@ export default function CapturePage() {
             onClick={capturePhoto}
             disabled={!isCameraReady || !isLocationReady}
             className={`mt-4 px-6 py-2 rounded-lg text-white 
-            ${
-              !isCameraReady || !isLocationReady
+            ${!isCameraReady || !isLocationReady
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+              }`}
           >
             Capture
           </button>
@@ -182,7 +181,7 @@ export default function CapturePage() {
               className="rounded-lg shadow mb-4 max-w-xs"
             />
             <span className="text-sm">
-              <strong>Take a screenshot of this then upload it in your profile</strong>
+              <strong>Take a screenshot of this then upload it in your Gallery</strong>
             </span>
             <span className="flex">
               <strong>Time:&nbsp; </strong> {timestamp}

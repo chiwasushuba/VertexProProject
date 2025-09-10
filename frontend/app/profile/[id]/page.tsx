@@ -25,7 +25,7 @@ import {
   MapPin,
   Mail,
   Trash2,
-  IdCard
+  IdCard,
 } from "lucide-react";
 import type { UserProfile } from "@/types/userProfileType";
 import { useAuthContext } from "@/hooks/useAuthContext";
@@ -138,8 +138,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  // changed: photos are objects carrying timestampId
-  const [photos, setPhotos] = useState<PhotoObj[]>([]);
+
+  // separate galleries for in & out
+  const [photosIn, setPhotosIn] = useState<PhotoObj[]>([]);
+  const [photosOut, setPhotosOut] = useState<PhotoObj[]>([]);
+
   const [file, setFile] = useState<File | null>(null);
   const [tempDialogOpen, setTempDialogOpen] = useState(false);
   const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false);
@@ -169,7 +172,7 @@ export default function ProfilePage() {
     fetchUser();
   }, [id]);
 
-  // Fetch photos when user changes — keep timestampId for deletes
+  // Fetch photos when user changes — keep timestampId for deletes, split by type
   useEffect(() => {
     if (!user?._id) return;
 
@@ -177,11 +180,16 @@ export default function ProfilePage() {
       try {
         const res = await api.get(`/timestamp/user/${user._id}`);
         const arr = Array.isArray(res.data) ? res.data : [];
-        // res.data is an array of timestamp docs: { _id, pictures: [...] }
-        const allPhotos: PhotoObj[] = arr.flatMap((item: any) =>
-          (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id }))
-        );
-        setPhotos(allPhotos);
+        // res.data is an array of timestamp docs: { _id, type, pictures: [...] }
+        const inPhotos: PhotoObj[] = arr
+          .filter((item: any) => item.type === "in")
+          .flatMap((item: any) => (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id })));
+        const outPhotos: PhotoObj[] = arr
+          .filter((item: any) => item.type === "out")
+          .flatMap((item: any) => (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id })));
+
+        setPhotosIn(inPhotos);
+        setPhotosOut(outPhotos);
       } catch (err) {
         console.error("Failed to fetch photos:", err);
       }
@@ -242,23 +250,11 @@ export default function ProfilePage() {
   const viewerRole = userInfo?.user?.role as string | undefined;
   const targetRole = user.role as string | undefined;
 
-  // RULES for showing the password button:
-  // - anyone can change their own password (user/admin/superAdmin)
-  // - admin can change any 'user' password (but NOT superAdmin)
-  // - superAdmin can change anyone's password (including other superAdmins)
   const canChangePassword = (() => {
     if (!viewerRole) return false;
-
-    // own profile: anyone can change their own pw
     if (isOwnProfile) return true;
-
-    // superAdmin: can change anyone
     if (viewerRole === "superAdmin") return true;
-
-    // admin: can change other users but NOT superAdmins
     if (viewerRole === "admin" && targetRole && targetRole !== "superAdmin") return true;
-
-    // otherwise: cannot change someone else's password
     return false;
   })();
 
@@ -275,7 +271,7 @@ export default function ProfilePage() {
       }
 
       await api.patch(`/user/changeRequestLetter/${requesterId}`, {
-        requestLetter: true
+        requestLetter: true,
       });
 
       alert("Request submitted.");
@@ -294,7 +290,7 @@ export default function ProfilePage() {
       }
 
       await api.patch(`/user/changeRequestId/${requesterId}`, {
-        requestId: true
+        requestId: true,
       });
 
       alert("Request submitted.");
@@ -302,32 +298,36 @@ export default function ProfilePage() {
       console.error("Error requesting letter:", e);
       alert("Failed to request letter.");
     }
-  }
-
+  };
 
   // Optimistic delete with auth header, reverts on failure
-  const handleDeletePhoto = async (index: number, photo: PhotoObj) => {
+  // now accepts galleryType 'in' | 'out'
+  const handleDeletePhoto = async (galleryType: "in" | "out", index: number, photo: PhotoObj) => {
     if (!isOwnProfile) return;
 
-    const previous = photos.slice();
-    // optimistic remove
-    const updated = photos.filter((_, i) => i !== index);
-    setPhotos(updated);
+    const prevIn = photosIn.slice();
+    const prevOut = photosOut.slice();
+
+    // remove optimistically from correct gallery
+    if (galleryType === "in") {
+      setPhotosIn((p) => p.filter((_, i) => i !== index));
+    } else {
+      setPhotosOut((p) => p.filter((_, i) => i !== index));
+    }
 
     try {
       const headers: Record<string, string> = {};
       if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`;
 
-      // Call your backend deleteSingleImage: DELETE /timestamp/:id/image
       await api.delete(`/timestamp/${photo.timestampId}/image`, {
         headers,
         data: { imageUrl: photo.url },
       });
-
       // success — UI already updated
     } catch (err) {
       // revert
-      setPhotos(previous);
+      setPhotosIn(prevIn);
+      setPhotosOut(prevOut);
       const error = err as AxiosError<{ message?: string }>;
       console.error("Failed to delete photo:", error?.response?.data?.message || err);
       alert(error?.response?.data?.message || "Failed to delete photo. Please try again.");
@@ -341,9 +341,12 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !isOwnProfile || !user?._id) return;
+  // Unified uploader helper
+  const uploadFile = async (type: "in" | "out") => {
+    if (!file || !isOwnProfile || !user?._id) {
+      if (!file) alert("Please select a file first.");
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -353,17 +356,22 @@ export default function ProfilePage() {
       const headers: Record<string, string> = {};
       if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`;
 
-      await api.post(`/timestamp`, formData, {
-        headers, // axios sets the correct Content-Type with boundary
+      await api.post(`/timestamp/${type}`, formData, {
+        headers,
       });
 
       // Refetch photos after upload
       const res = await api.get(`/timestamp/user/${user._id}`);
       const arr = Array.isArray(res.data) ? res.data : [];
-      const allPhotos: PhotoObj[] = arr.flatMap((item: any) =>
-        (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id }))
-      );
-      setPhotos(allPhotos);
+      const inPhotos: PhotoObj[] = arr
+        .filter((item: any) => item.type === "in")
+        .flatMap((item: any) => (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id })));
+      const outPhotos: PhotoObj[] = arr
+        .filter((item: any) => item.type === "out")
+        .flatMap((item: any) => (item.pictures || []).map((p: string) => ({ url: p, timestampId: item._id })));
+
+      setPhotosIn(inPhotos);
+      setPhotosOut(outPhotos);
 
       setFile(null);
     } catch (err) {
@@ -374,10 +382,19 @@ export default function ProfilePage() {
     }
   };
 
+  const handleFileSubmitIn = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    await uploadFile("in");
+  };
+
+  const handleFileSubmitOut = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    await uploadFile("out");
+  };
+
   const handleEditProfile = () => {
     setEditProfileDialogOpen(true);
   };
-
 
   // Prepare dialog props
   const fullName = `${user.firstName ?? ""} ${user.middleName ? user.middleName + " " : ""}${user.lastName ?? ""}`.trim();
@@ -419,49 +436,109 @@ export default function ProfilePage() {
               </CardHeader>
             </Card>
 
-            {/* Inline Photo Gallery */}
+            {/* Photo Galleries: In */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5" />
-                  Photo Gallery
-                  {photos.length > 0 && (
+                  Photo Gallery — In
+                  {photosIn.length > 0 && (
                     <Badge variant="secondary" className="ml-auto">
-                      {photos.length} photo{photos.length !== 1 ? "s" : ""}
+                      {photosIn.length} photo{photosIn.length !== 1 ? "s" : ""}
                     </Badge>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {photos.map((photo, index) => (
-                    <div key={`${photo.timestampId}-${index}`} className="aspect-square">
-                      <PhotoPreview photo={photo} index={index} isOwnProfile={isOwnProfile} onDelete={handleDeletePhoto} />
+                  {photosIn.map((photo, index) => (
+                    <div key={`${photo.timestampId}-in-${index}`} className="aspect-square">
+                      <PhotoPreview photo={photo} index={index} isOwnProfile={isOwnProfile} onDelete={(i, p) => handleDeletePhoto("in", i, p)} />
                     </div>
                   ))}
 
-                  {(!photos || photos.length === 0) && (
+                  {photosIn.length === 0 && (
                     <div className="col-span-full flex items-center justify-center h-40 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
                       <div className="text-center">
                         <Camera className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">No photos uploaded</p>
+                        <p className="text-sm text-gray-500">No "In" photos uploaded</p>
                       </div>
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
 
-                <Separator className="my-4" />
-                <div className="w-full">
-                  {/* Upload form only for own profile */}
-                  {isOwnProfile && (
-                    <form onSubmit={handleFileSubmit} className="mb-6 flex flex-col sm:flex-row sm:items-center gap-2 w-full">
-                      <input className="border p-2 rounded w-full sm:w-auto" type="file" accept="image/*" onChange={handleFileChange} />
-                      <Button type="submit" disabled={isUploading} className="w-full sm:w-auto">
-                        {isUploading ? "Uploading..." : "Upload"}
-                      </Button>
-                    </form>
+            {/* Photo Galleries: Out */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Photo Gallery — Out
+                  {photosOut.length > 0 && (
+                    <Badge variant="secondary" className="ml-auto">
+                      {photosOut.length} photo{photosOut.length !== 1 ? "s" : ""}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {photosOut.map((photo, index) => (
+                    <div key={`${photo.timestampId}-out-${index}`} className="aspect-square">
+                      <PhotoPreview photo={photo} index={index} isOwnProfile={isOwnProfile} onDelete={(i, p) => handleDeletePhoto("out", i, p)} />
+                    </div>
+                  ))}
+
+                  {photosOut.length === 0 && (
+                    <div className="col-span-full flex items-center justify-center h-40 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="text-center">
+                        <Camera className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">No "Out" photos uploaded</p>
+                      </div>
+                    </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            <Separator className="my-4" />
+
+            {/* Unified Upload Form (choose In / Out) */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Upload Photo (In / Out)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isOwnProfile ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+                    <input className="border p-2 rounded w-full sm:w-auto" type="file" accept="image/*" onChange={handleFileChange} />
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <Button
+                        type="button"
+                        onClick={handleFileSubmitIn}
+                        disabled={isUploading}
+                        className="w-full sm:w-auto"
+                      >
+                        {isUploading ? "Uploading..." : "Upload In"}
+                      </Button>
+
+                      <Button
+                        type="button"
+                        onClick={handleFileSubmitOut}
+                        disabled={isUploading}
+                        className="w-full sm:w-auto"
+                      >
+                        {isUploading ? "Uploading..." : "Upload Out"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">You can only upload photos to your own profile.</p>
+                )}
               </CardContent>
             </Card>
 
@@ -498,24 +575,11 @@ export default function ProfilePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                    <img
-                      src={user.nbiClearance || "/placeholder.svg"}
-                      alt="NBI"
-                      className="w-full max-h-150  object-contain rounded-lg border bg-white"
-                      style={{ width: "100%", height: "auto" }}
-                    />
+                      <img src={user.nbiClearance || "/placeholder.svg"} alt="NBI" className="w-full max-h-150  object-contain rounded-lg border bg-white" style={{ width: "100%", height: "auto" }} />
                     </div>
                     <div className="space-y-2">
-                      <InfoItem
-                        icon={Calendar}
-                        label="Registration Date"
-                        value={user.nbiRegistrationDate ? new Date(user.nbiRegistrationDate).toLocaleDateString() : ""}
-                      />
-                      <InfoItem
-                        icon={Calendar}
-                        label="Expiration Date"
-                        value={user.nbiExpirationDate ? new Date(user.nbiExpirationDate).toLocaleDateString() : ""}
-                      />
+                      <InfoItem icon={Calendar} label="Registration Date" value={user.nbiRegistrationDate ? new Date(user.nbiRegistrationDate).toLocaleDateString() : ""} />
+                      <InfoItem icon={Calendar} label="Expiration Date" value={user.nbiExpirationDate ? new Date(user.nbiExpirationDate).toLocaleDateString() : ""} />
                     </div>
                   </div>
                 </div>
@@ -530,19 +594,10 @@ export default function ProfilePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <img
-                        src={user.governmentId || "/placeholder.svg"}
-                        alt="Government ID"
-                        className="w-full max-h-150 object-contain rounded-lg border bg-white"
-                        style={{ width: "100%", height: "auto" }}
-                      />
+                      <img src={user.governmentId || "/placeholder.svg"} alt="Government ID" className="w-full max-h-150 object-contain rounded-lg border bg-white" style={{ width: "100%", height: "auto" }} />
                     </div>
                     <div>
-                      <InfoItem
-                        icon={IdCard}
-                        label="Expiration Date"
-                        value={user.governmentIdType}
-                      />
+                      <InfoItem icon={IdCard} label="Expiration Date" value={user.governmentIdType} />
                     </div>
                   </div>
                 </div>
@@ -557,19 +612,10 @@ export default function ProfilePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <img
-                        src={user.fitToWork || "/placeholder.svg"}
-                        alt="Fit to work"
-                        className="w-full max-h-150 object-contain rounded-lg border bg-white"
-                        style={{ width: "100%", height: "auto" }}
-                      />
+                      <img src={user.fitToWork || "/placeholder.svg"} alt="Fit to work" className="w-full max-h-150 object-contain rounded-lg border bg-white" style={{ width: "100%", height: "auto" }} />
                     </div>
                     <div>
-                      <InfoItem
-                        icon={Calendar}
-                        label="Expiration Date"
-                        value={user.fitToWorkExpirationDate ? new Date(user.fitToWorkExpirationDate).toLocaleDateString() : ""}
-                      />
+                      <InfoItem icon={Calendar} label="Expiration Date" value={user.fitToWorkExpirationDate ? new Date(user.fitToWorkExpirationDate).toLocaleDateString() : ""} />
                     </div>
                   </div>
                 </div>
@@ -611,7 +657,6 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 w-full sm:w-auto">
-                  {/* Request Letter only for regular users on own profile */}
                   {isOwnProfile ? (
                     <>
                       <Button onClick={handleRequestLetter} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
@@ -624,46 +669,33 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-                      <Button
-                        onClick={handleSendLetter}
-                        className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-                        disabled={!user.requestLetter} // ⬅️ disable if not requested
-                      >
+                      <Button onClick={handleSendLetter} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto" disabled={!user.requestLetter}>
                         Send Store Intro Letter
                       </Button>
                       <SendIdButton requesterId={user._id} disabled={!user.requestId} />
                     </div>
                   )}
 
-                  {/* Edit Profile only for own profile */}
                   {isOwnProfile && (
                     <Button onClick={handleEditProfile} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                       Edit Profile
                     </Button>
                   )}
 
-                  {/* Change/Reset Password button shown only when allowed by rules */}
                   {canChangePassword && (
-                    <Button
-                      onClick={() => setEditPasswordDialogOpen(true)}
-                      className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-                    >
+                    <Button onClick={() => setEditPasswordDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                       {isOwnProfile ? "Change Password" : "Reset Password"}
                     </Button>
                   )}
                 </div>
 
-                {/* Password dialog (props passed correctly) */}
                 <EditPasswordDialog _id={user._id} open={editPasswordDialogOpen} setOpen={setEditPasswordDialogOpen} />
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Template Dialog */}
-        <TemplateDialog name={fullName} role={role} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} requesterId={user._id} />
-
-        {/* Edit Profile Dialog */}
+        <TemplateDialog name={fullName} email={email} open={tempDialogOpen} setOpen={setTempDialogOpen} requesterId={user._id} />
         <EditProfileDialog _id={user._id} open={editProfileDialogOpen} setOpen={setEditProfileDialogOpen} />
       </div>
     </RouteGuard>
